@@ -3,6 +3,8 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var session = require("express-session")
+var flash = require('connect-flash')
 
 async function main() {
   try {
@@ -39,6 +41,13 @@ main().then((db) => {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, "public")));
+  app.use(session({
+    secret: 'rubicamp',
+    resave: false,
+    saveUninitialized: true,
+    // cookie: { secure: true }
+  }))
+  app.use(flash())
 
   app.use("/", indexRouter);
   app.use("/users", usersRouter);
