@@ -11,7 +11,7 @@ module.exports = function (db) {
       let sql = `SELECT * FROM users`;
       const readData = await db.query(sql);
       // const readData = `test`
-      res.render("./sb-admin2/index", {
+      res.render("./page/index", {
         title: "Express",
         data: readData.rows,
         user: req.session.user,
@@ -29,7 +29,7 @@ module.exports = function (db) {
   router
     .route("/login")
     .get(async function (req, res) {
-      res.render("./sb-admin2/login", { info: req.flash(`info`) });
+      res.render("./page/login", { info: req.flash(`info`) });
     })
     .post(async function (req, res) {
       try {
@@ -61,7 +61,7 @@ module.exports = function (db) {
   router
     .route("/register")
     .get(async function (req, res) {
-      res.render("./sb-admin2/register", { info: req.flash(`info`) });
+      res.render("./page/register", { info: req.flash(`info`) });
     })
     .post(async function (req, res) {
       try {
