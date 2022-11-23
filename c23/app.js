@@ -28,7 +28,9 @@ async function main() {
 
 main().then((db) => {
   var indexRouter = require("./routes/index")(db);
-  var usersRouter = require("./routes/users");
+  var usersRouter = require("./routes/users")(db);
+  var dataRouter = require("./routes/data")(db);
+  var testRouter = require("./routes/test")(db);
 
   var app = express();
 
@@ -51,6 +53,8 @@ main().then((db) => {
 
   app.use("/", indexRouter);
   app.use("/users", usersRouter);
+  app.use("/data", dataRouter);
+  app.use("/test", testRouter);
 
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {
@@ -147,4 +151,6 @@ main().then((db) => {
     var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
     debug("Listening on " + bind);
   }
-});
+}).catch((err) => {
+  console.log("gagal bro", err);
+})

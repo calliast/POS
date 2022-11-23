@@ -44,6 +44,7 @@
 *,
 *::before,
 *::after {
+  /* border: solid; */
   box-sizing: border-box;
 }
 
@@ -552,10 +553,12 @@ pre code {
 .container-lg,
 .container-xl {
   width: 100%;
+  height: 100%;
   padding-right: 0.75rem;
   padding-left: 0.75rem;
   margin-right: auto;
   margin-left: auto;
+  /* border: solid; */
 }
 
 @media (min-width: 576px) {
@@ -10862,13 +10865,17 @@ a:focus {
 
 .bg-login-image {
   background: url("/stylesheets/img/rubicamp.png");
+  height: 650px;
   background-position: center;
-  background-size: contain;
+  background-size: 430px;
   background-repeat: no-repeat;
+  background-color: black;
 }
 
 .bg-register-image {
   background: url("/stylesheets/img/rubicamp.png");
+  width: 650px;
+  height: 650px;
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
@@ -10876,6 +10883,8 @@ a:focus {
 
 .bg-password-image {
   background: url("/stylesheets/img/rubicamp.png");
+  width: 650px;
+  height: 650px;
   background-position: center;
   background-size: cover;
 }

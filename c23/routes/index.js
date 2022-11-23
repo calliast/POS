@@ -4,7 +4,8 @@ const bcrypt = require("bcrypt");
 const helpers = require("../helpers/util");
 
 module.exports = function (db) {
-  /* GET home page. */
+
+  /* HOMEPAGE - DASHBOARD */
   router.route("/").get(helpers.isLoggedIn, async function (req, res) {
     try {
       // let sql = `SELECT "userid", "email", "name", "password", "role" FROM users ORDER BY "userid" ASC`;
@@ -26,6 +27,7 @@ module.exports = function (db) {
     res.redirect("/login");
   });
 
+  /* LOGIN PAGE */
   router
     .route("/login")
     .get(async function (req, res) {
@@ -58,6 +60,7 @@ module.exports = function (db) {
       }
     });
 
+  /* REGISTRATION PAGE */
   router
     .route("/register")
     .get(async function (req, res) {

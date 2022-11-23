@@ -1,0 +1,376 @@
+<%- include('../layouts/header') %> 
+<%- include('../layouts/nav') %> 
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-2 text-gray-800">Users</h1>
+                    <!-- DataTables -->
+                    <div id="users-section" class="card shadow mb-4" style="display:none;">
+                        <div class="card-header py-3">
+                            <h6 id="users-form-title" class="m-0 font-weight-bold text-primary">Add Data</h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="users-form" method="POST">
+                                <div class="form-group row" id="userid-form" style="display: none;">
+                                    <label for="userid" class="col-sm-2 col-form-label">USER-ID</label>
+                                    <div class="col-sm-10">
+                                      <input type="text" class="form-control" id="userid" placeholder="userid" disabled>
+                                    </div>
+                                  </div>
+                                <div class="form-group row">
+                                  <label for="email" class="col-sm-2 col-form-label">Email</label>
+                                  <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="email" placeholder="Email" required>
+                                    <div id="email-valid" class="valid-feedback">
+                                        Email address is available
+                                    </div>
+                                    <div id="email-invalid" class="invalid-feedback">
+                                        Email address already exist.
+                                    </div>
+                                </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label for="name" class="col-sm-2 col-form-label">Name</label>
+                                    <div class="col-sm-10">
+                                      <input type="" class="form-control" id="name" placeholder="Name" required>
+                                    </div>
+                                  </div>
+                                <div class="form-group row" id="password-form">
+                                  <label for="password" class="col-sm-2 col-form-label">Password</label>
+                                  <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                                  </div>
+                                </div>
+                                <fieldset class="form-group">
+                                  <div class="row">
+                                    <legend id="role" class="col-form-label col-sm-2 pt-0">Role</legend>
+                                    <div class="col-sm-10">
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role" id="role1" value="operator" checked>
+                                        <label class="form-check-label" for="role1">
+                                          Operator
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role" id="role2" value="admin">
+                                        <label class="form-check-label" for="role2">
+                                          Admin
+                                        </label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <div class="card-footer">
+                            <button id="save-btn" form="users-form" type="submit" class="btn btn-success btn-icon-split">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-database"></i>
+                                </span>
+                                <span class="text">Save</span>
+                            </button>
+                            <button form="users-form" class="btn btn-warning btn-icon-split" id="back-btn">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-undo"></i>
+                                </span>
+                                <span class="text">Back</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DataTables -->
+                    <div class="card shadow mb-4" id="users-table">
+                        <div class="card-header py-3">
+                            <button id="add-btn" class="btn btn-primary btn-icon-split">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-plus"></i>
+                                </span>
+                                <span class="text">Add</span>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>User ID</th>
+                                            <th>Email</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Delete Modal-->
+            <div
+            class="modal fade"
+            id="deleteModal"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+            >
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Confirmation</h5>
+                <button
+                    class="close"
+                    type="button"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                Are you sure, you want to delete it?
+                </div>
+                <div class="modal-footer">
+                <button
+                    class="btn btn-secondary"
+                    type="button"
+                    data-dismiss="modal"
+                >
+                    No
+                </button>
+                <form method="post" action="">
+                    <input type="hidden" name="name" value="value" /> 
+                    <a id="delete-confirmation" class="btn btn-primary" href="#">Yes</a>
+                  </form>
+                </div>
+            </div>
+            </div>
+            </div>
+
+            <script>
+            /* USERS API */
+                // Save data
+                const saveData = (userid, email, name, password, role) => {
+                    if (userid) {
+                        $.ajax({
+                            method: 'PUT',
+                            url: `http://localhost:3023/data/users/${userid}`,
+                            dataType: 'json',
+                            data: {
+                                    email,
+                                    name,
+                                    role
+                            }
+                        })
+                        .done(function (response) {
+                            console.log(response);
+                            $('#users-form').trigger('reset')
+                            $('#users-section').toggle()
+                            $('#users-table').toggle()
+                            $('#dataTable').DataTable().clear().ajax.reload()
+                        })
+                        .fail(function (err) {
+                            alert('gagal pake jquery')
+                        })
+                    } else {
+                        $.ajax({
+                            method: 'POST',
+                            url: `http://localhost:3023/data/users`,
+                            dataType: 'json',
+                            data: {
+                                    email,
+                                    name,
+                                    password,
+                                    role
+                            }
+                        })
+                        .done(function (response) {
+                            console.log(response);
+                            $('#users-form').trigger('reset')
+                            $('#users-section').toggle()
+                            $('#users-table').toggle()
+                            $('#dataTable').DataTable().clear().ajax.reload()
+                        })
+                        .fail(function (err) {
+                            alert('gagal pake jquery')
+                        })
+                    }
+                }
+
+                //Delete data
+                const deleteData = (id) => {
+                    $.ajax({
+                        method: 'DELETE',
+                        url: `http://localhost:3023/data/users/${id}`,
+                        dataType: 'json'
+                    }).done(function(response) {
+                        $('#deleteModal').modal('toggle')
+                        $('#dataTable').DataTable().clear().ajax.reload()
+                    }).fail(function(error) {
+                        alert('gagal bro')
+                    })
+                }
+
+                //Edit data
+                const editData = (userid) => {
+                    $.ajax({
+                        method: 'GET',
+                        url: `http://localhost:3023/data/users/${userid}`,
+                        dataType: 'json'
+                    }).done(function(response) {
+                        $('#add-btn').trigger('click')
+                        $('#users-form-title').html('Edit Data')
+                        $('#password-form').hide()
+                        $('#password').prop('required', false)
+                        $('#email').attr('data-id', response.rows[0].email)
+                        
+                        // $('#email').prop('id', 'email-edit')
+
+                        $('#userid').val(response.rows[0].userid)
+                        $('#email').val(response.rows[0].email)
+                        $('#name').val(response.rows[0].name)
+                        // $('#password').val(response.rows[0].password)
+                        $(`input[name="role"][value="${response.rows[0].role}"]`).prop('checked', true)
+                    }).fail(function(error) {
+                        alert('gagal cuy')
+                    })
+                }
+
+                const emailCheck = (email) => {
+                    $.ajax({
+                            method: 'POST',
+                            url: `http://localhost:3023/data/users`,
+                            dataType: 'json',
+                            data: {
+                                email
+                            }
+                        }).done(function(response) {
+                            console.log(response);
+                            console.log(`format sesuai`);
+                            if (response.data) {
+                                $('input#email').removeClass('is-invalid').addClass('is-valid')
+                            } else {
+                                $('input#email').removeClass('is-valid').addClass('is-invalid')
+                                $('#email-invalid').html('Email address already exist.')
+                            }
+                        }).fail(function(error) {
+                            alert('gagal bro')
+                        })
+                }
+
+                $(document).ready(function() {
+
+            /* USERS - MAIN PAGE */
+                // Add-button - Hide/Show Users-Form
+                $('button#add-btn').click(function() {
+                    $('#users-form-title').html('Add Data')
+                    $('#password').prop('required', true)
+                    $('#password-form').show()
+
+                    $('#users-section').toggle()
+                    $('#users-table').toggle()
+                })
+                
+                // Table - Read data
+                    $('#dataTable').DataTable({
+                        "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
+                        "processing": true,
+                        "serverSide": true,
+                        "ajax": "/data/users",
+                        "columns": [
+                            {'data': 'userid'},
+                            {'data': 'email'},
+                            {'data': 'name'},
+                            {'data': 'role'},
+                            {
+                                'data': 'userid',
+                                'orderable': false,
+                                'render': function(data) {
+                                    return `<button data-id="${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></button>  <button data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></button>`
+                                }
+                            }
+                        ]
+                    })
+                
+                // Table - Delete data
+                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
+                        e.preventDefault()
+                        const dataId = $(this).attr('data-id')
+                        $('a#delete-confirmation').attr("data-id", dataId)
+                    })
+                    
+                // Table - Edit data
+                    $('#dataTable').on('click', 'button.anchor_edit', function(e) {
+                        e.preventDefault()
+                        const userId = $(this).attr('data-id')
+                        editData(userId)
+                    })
+                
+            /* DELETE MODAL */
+                // Delete Confirmation
+                    $('a#delete-confirmation').click(function() {
+                    const dataId = $(this).attr('data-id')
+                    deleteData(dataId)
+                })
+
+            /* USERS-FORM */
+                // Back-Event - Reset form and toggle back the users-form
+                $('#back-btn').click(function() {
+                    $('#users-form').trigger('reset')
+                    $('#email').removeClass('is-invalid is-valid')
+                    $('#email').prop('id', 'email')
+
+                    $('#users-section').toggle()
+                    $('#users-table').toggle()
+                })
+
+                $('#users-form').submit(function(event) {
+                    event.preventDefault()
+                    
+                    if ($('#email').hasClass('is-invalid')) {
+                        console.log(`invalid`);
+                        return event.preventDefault()
+                    } else {
+                        const userid = $('#userid').val()
+                        const email = $('#email').val()
+                        const name = $('#name').val()
+                        const password = $('#password').val()
+                        const role = $('input[name="role"]:checked').val()
+    
+                        saveData(userid, email, name, password, role)
+                    }
+                })
+
+                // Email-Event - Check if email already exists
+                $('#email').change(function() {
+                    const email = $(this).val()
+                    const emailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
+                    const emailIsValid = emailFormat.test(email)
+
+                    if (email === $('#email').attr('data-id')) {
+                        $('input#email').removeClass('is-invalid').addClass('is-valid')
+                        $('#email-valid').html('Email remain unchanged.')
+                    } else if (emailIsValid) {
+                        emailCheck(email)
+                    } else if (!email) {
+                        $('input#email').removeClass('is-valid').addClass('is-invalid')
+                        $('#email-invalid').html('Email is required.')
+                    } else {
+                        $('input#email').removeClass('is-valid').addClass('is-invalid')
+                        $('#email-invalid').html('Invalid format.')
+                    }
+                })
+
+                })
+            </script>
+
+<%- include('../layouts/footer') %> 
