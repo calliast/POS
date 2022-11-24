@@ -35,7 +35,6 @@
                             }
                         })
                         .done(function (response) {
-                            console.log(response);
                             $('#users-form').trigger('reset')
                             $('#users-section').toggle()
                             $('#users-table').toggle()
@@ -57,7 +56,6 @@
                             }
                         })
                         .done(function (response) {
-                            console.log(response);
                             $('#users-form').trigger('reset')
                             $('#users-section').toggle()
                             $('#users-table').toggle()
@@ -108,21 +106,24 @@
                     })
                 }
 
-                const emailCheck = (email) => {
+                const emailCheck = (email, checkTag) => {
                     $.ajax({
                             method: 'POST',
                             url: `http://localhost:3023/users/data`,
                             dataType: 'json',
                             data: {
-                                email
+                                email,
+                                checkTag,
                             }
                         }).done(function(response) {
-                            console.log(response);
-                            console.log(`format sesuai`);
                             if (response.data) {
+                                $('#email').prop('data-email', '')
+                                
                                 $('input#email').removeClass('is-invalid').addClass('is-valid')
                             } else {
+                                $('#email').prop('data-email', '')
                                 $('input#email').removeClass('is-valid').addClass('is-invalid')
+
                                 $('#email-invalid').html('Email address already exist.')
                             }
                         }).fail(function(error) {
@@ -136,7 +137,9 @@
                 // Add-button - Hide/Show Users-Form
                 $('button#add-btn').click(function() {
                     $('#users-form-title').html('Add Data')
+                    $('#users-form').trigger('reset')
                     $('#password').prop('required', true)
+                    $('#email').prop('data-email', '')
                     $('#password-form').show()
 
                     $('#users-section').toggle()
@@ -190,7 +193,7 @@
                 $('#back-btn').click(function() {
                     $('#users-form').trigger('reset')
                     $('#email').removeClass('is-invalid is-valid')
-                    $('#email').prop('id', 'email')
+                    $('#email').prop('data-email', '')
 
                     $('#users-section').toggle()
                     $('#users-table').toggle()
@@ -200,7 +203,6 @@
                     event.preventDefault()
                     
                     if ($('#email').hasClass('is-invalid')) {
-                        console.log(`invalid`);
                         return event.preventDefault()
                     } else {
                         const userid = $('#userid').val()
@@ -215,15 +217,16 @@
 
                 // Email-Event - Check if email already exists
                 $('#email').change(function() {
+                    const checkTag = $(this).prop('data-email', 'true')
                     const email = $(this).val()
                     const emailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
                     const emailIsValid = emailFormat.test(email)
-
+                    
                     if (email === $('#email').attr('data-id')) {
                         $('input#email').removeClass('is-invalid').addClass('is-valid')
                         $('#email-valid').html('Email remain unchanged.')
                     } else if (emailIsValid) {
-                        emailCheck(email)
+                        emailCheck(email, $(this).prop('data-email'))
                     } else if (!email) {
                         $('input#email').removeClass('is-valid').addClass('is-invalid')
                         $('#email-invalid').html('Email is required.')

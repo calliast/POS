@@ -1,19 +1,18 @@
 var express = require("express");
 var router = express.Router();
-const helpers = require("../helpers/util");
+const bcrypt = require('bcrypt')
+const helpers = require("../public/javascripts/util");
 
 module.exports = function (db) {
   let runNum = 1;
   let sql = ``;
 
   /* USERS Route. */
-  router
-  .route("/")
-  .get(helpers.isLoggedIn, async function (req, res) {
+  router.route("/").get(helpers.isLoggedIn, async function (req, res) {
     try {
-      res.render("./users/users", { 
+      res.render("./users/users", {
         user: req.session.user,
-        info: req.flash(`info`)  
+        info: req.flash(`info`),
       });
     } catch (error) {
       res.json(error);
@@ -38,7 +37,7 @@ module.exports = function (db) {
         const sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        console.log({ queryUsers: req.query });
+        // console.log({ queryUsers: req.query });
 
         let queryTotal = `select count(*) as total from users${
           params.length > 0 ? ` where ${params.join(" or ")}` : ""
@@ -47,25 +46,25 @@ module.exports = function (db) {
           params.length > 0 ? ` where ${params.join(" or ")}` : ""
         } order by ${sortBy} ${sortMode} limit ${limit} offset ${offset}`;
 
-        console.log({
-          sqlQuery: {
-            queryTotal,
-            queryData
-          }
-        });
+        // console.log({
+        //   sqlQuery: {
+        //     queryTotal,
+        //     queryData,
+        //   },
+        // });
 
         const total = await db.query(queryTotal);
         const data = await db.query(queryData);
 
-        console.log({
-          "Percobaan ke": runNum,
-          limit,
-          offset,
-          sortBy,
-          sortMode,
-          hasil: total.rows,
-          data: data.rows,
-        });
+        // console.log({
+        //   "Percobaan ke": runNum,
+        //   limit,
+        //   offset,
+        //   sortBy,
+        //   sortMode,
+        //   hasil: total.rows,
+        //   data: data.rows,
+        // });
 
         const response = {
           draw: Number(req.query.draw),
@@ -85,22 +84,21 @@ module.exports = function (db) {
     .post(helpers.isLoggedIn, async function (req, res) {
       try {
         sql = `SELECT * FROM users where email = $1`;
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, checkTag } = req.body;
 
         // Check if email already exist
         const emailCheck = await db.query(sql, [email]);
 
-        if (emailCheck.rowCount) {
-          return res.json({
-            data: null,
-          });
-        }
-
-        if (!emailCheck.rowCount && !name && !password && !role) {
-          `    `;
-          return res.json({
-            data: emailCheck.rows,
-          });
+        if (checkTag) {
+          if (emailCheck.rowCount) {
+            return res.json({
+              data: null,
+            });
+          } else {
+            return res.json({
+              data: emailCheck.rows,
+            });
+          }
         }
 
         // Save data if there are email, name, password, and role
@@ -122,7 +120,7 @@ module.exports = function (db) {
       }
     });
 
-    router
+  router
     .route("/data/:userid")
     // GET METHOD - Pull user`s data to the edit page
     .get(helpers.isLoggedIn, async function (req, res) {
@@ -145,11 +143,10 @@ module.exports = function (db) {
           req.body.role,
           parseInt(req.params.userid),
         ];
-        
-        sql =
-        `UPDATE users SET "email" = $1, "name" = $2, "role" = $3 WHERE "userid" = $4`;
+
+        sql = `UPDATE users SET "email" = $1, "name" = $2, "role" = $3 WHERE "userid" = $4`;
         const getData = await db.query(sql, response);
-        
+
         console.log(getData);
         res.json(getData);
       } catch (error) {

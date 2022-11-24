@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const bcrypt = require("bcrypt");
-const helpers = require("../helpers/util");
+const helpers = require("../public/javascripts/util");
 
 module.exports = function (db) {
   router

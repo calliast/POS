@@ -4,7 +4,7 @@
         <h6 id="users-form-title" class="m-0 font-weight-bold text-primary">Add Data</h6>
     </div>
     <div class="card-body">
-        <form id="users-form" method="POST">
+        <form id="users-form" method="POST" autocomplete="off">
             <div class="form-group row" id="userid-form" style="display: none;">
                 <label for="userid" class="col-sm-2 col-form-label">USER-ID</label>
                 <div class="col-sm-10">
@@ -14,7 +14,7 @@
             <div class="form-group row">
               <label for="email" class="col-sm-2 col-form-label">Email</label>
               <div class="col-sm-10">
-                <input type="email" class="form-control" id="email" placeholder="Email" required>
+                <input data-email="" type="email" class="form-control" id="email" placeholder="Email" autocomplete="off" required>
                 <div id="email-valid" class="valid-feedback">
                     Email address is available
                 </div>
