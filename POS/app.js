@@ -29,7 +29,7 @@ async function main() {
 main().then((db) => {
   var indexRouter = require("./routes/index")(db);
   var usersRouter = require("./routes/users")(db);
-  var dataRouter = require("./routes/data")(db);
+  var unitsRouter = require("./routes/units")(db);
   var testRouter = require("./routes/test")(db);
 
   var app = express();
@@ -53,7 +53,7 @@ main().then((db) => {
 
   app.use("/", indexRouter);
   app.use("/users", usersRouter);
-  app.use("/data", dataRouter);
+  app.use("/units", unitsRouter);
   app.use("/test", testRouter);
 
   // catch 404 and forward to error handler

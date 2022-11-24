@@ -44,7 +44,6 @@
 *,
 *::before,
 *::after {
-  /* border: solid; */
   box-sizing: border-box;
 }
 

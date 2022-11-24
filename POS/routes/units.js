@@ -1,23 +1,37 @@
 var express = require("express");
 var router = express.Router();
-const bcrypt = require("bcrypt");
 const helpers = require("../helpers/util");
 
 module.exports = function (db) {
   let runNum = 1;
   let sql = ``;
-
-  /* USERS */
+  
+  /* UNITS Route. */
   router
-    .route("/users")
-    // 1. GET METHOD - Read Users data
+  .route("/")
+  .get(helpers.isLoggedIn, async function (req, res) {
+    try {
+      res.render("./units/units", { 
+        user: req.session.user,
+        info: req.flash(`info`)  
+      });
+    } catch (error) {
+      res.json(error);
+    }
+  })
+
+  /* ALL CRUD */
+  router
+    .route("/data")
+    // 1. GET METHOD - Read all users
     .get(helpers.isLoggedIn, async function (req, res) {
       try {
         let params = [];
 
         if (req.query.search.value) {
-          params.push(`name like '%${req.query.search.value}%'`);
-          params.push(`email like '%${req.query.search.value}%'`);
+          params.push(`unit ILIKE '%${req.query.search.value}%'`);
+          params.push(`name ILIKE '%${req.query.search.value}%'`);
+          params.push(`note ILIKE '%${req.query.search.value}%'`);
         }
 
         const limit = req.query.length;
@@ -25,14 +39,14 @@ module.exports = function (db) {
         const sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        console.log({ queryUsers: req.query });
+        console.log({ queryUnits: req.query });
 
-        let queryTotal = `select count(*) as total from users${
-          params.length > 0 ? ` where ${params.join(" or ")}` : ""
+        let queryTotal = `SELECT count(*) as TOTAL FROM units${
+          params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         }`;
-        let queryData = `select * from users${
-          params.length > 0 ? ` where ${params.join(" or ")}` : ""
-        } order by ${sortBy} ${sortMode} limit ${limit} offset ${offset}`;
+        let queryData = `SELECT * FROM units${
+          params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
+        } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
         console.log({
           sqlQuery: {
@@ -68,38 +82,34 @@ module.exports = function (db) {
         res.json(error);
       }
     })
-    // 2. POST METHOD - ADD new users data
+    // 2. POST METHOD - Add a new unit
     .post(helpers.isLoggedIn, async function (req, res) {
       try {
-        sql = `SELECT * FROM users where email = $1`;
-        const { name, email, password, role } = req.body;
+        sql = `SELECT * FROM units WHERE unit = $1`;
+        const { unit, name, note } = req.body;
 
-        // Check if email already exist
-        const emailCheck = await db.query(sql, [email]);
+        // Check if unit already exist
+        const unitCheck = await db.query(sql, [unit]);
 
-        if (emailCheck.rowCount) {
+        if (unitCheck.rowCount) {
           return res.json({
             data: null,
           });
         }
 
-        if (!emailCheck.rowCount && !name && !password && !role) {
+        if (!unitCheck.rowCount && !name && !note) {
           `    `;
           return res.json({
-            data: emailCheck.rows,
+            data: unitCheck.rows,
           });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        sql = `INSERT INTO users("email", "name", "password", "role") VALUES ($1, $2, $3, $4)`;
+        sql = `INSERT INTO units("unit", "name", "note") VALUES ($1, $2, $3)`;
 
         const insertData = await db.query(sql, [
-          email,
+          unit,
           name,
-          hashedPassword,
-          role,
+          note
         ]);
 
         res.json(insertData);
@@ -108,51 +118,51 @@ module.exports = function (db) {
       }
     });
 
-  // 3. DELETE METHOD - Delete users data
-  router
-    .route("/users/:userid")
+    router
+    .route("/data/:unit")
+    // GET METHOD - Pull user's data to the edit page
     .get(helpers.isLoggedIn, async function (req, res) {
       try {
-        sql = 'SELECT * FROM users WHERE "userid" = $1';
-        const userid = parseInt(req.params.userid);
-        const getData = await db.query(sql, [userid]);
-        console.log(getData);
+        sql = `SELECT * FROM units WHERE "unit" = $1`;
+        const unit = req.params.unit
+        const getData = await db.query(sql, [unit]);
         res.json(getData);
       } catch (error) {
         res.json(error);
       }
     })
+    // PUT METHOD - Update edited user data
     .put(helpers.isLoggedIn, async function (req, res) {
       try {
         const response = [
-          req.body.email,
+          req.params.unit,
           req.body.name,
-          req.body.role,
-          parseInt(req.params.userid),
+          req.body.note,
+          req.params.unit,
         ];
-
+        
         sql =
-          'UPDATE users SET "email" = $1, "name" = $2, "role" = $3 WHERE "userid" = $4';
+        `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4`;
         const getData = await db.query(sql, response);
-
-        console.log(getData);
+        
         res.json(getData);
       } catch (error) {
         res.json(error);
       }
     })
+    // 3. DELETE METHOD - Delete a user and its data
     .delete(helpers.isLoggedIn, async function (req, res) {
       try {
-        sql = 'DELETE FROM users WHERE "userid" = $1';
-        const userid = parseInt(req.params.userid);
-        const deleteData = await db.query(sql, [userid]);
+        sql = `DELETE FROM units WHERE "unit" = $1`;
+        const unit = req.params.unit
+        const deleteData = await db.query(sql, [unit]);
         res.json(deleteData);
       } catch (error) {
         res.json(error);
       }
     });
 
-  runNum++;
+  runNum++
 
   return router;
 };
