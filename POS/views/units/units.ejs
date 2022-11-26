@@ -15,49 +15,205 @@
 
             <!-- Begin Delete Modal -->
             
-<%- include('./modal') %> 
+<%- include('../layouts/modal') %> 
 
             <!-- End of Delete Modal -->
 
             <script>
-            /* UNITS API */
-                // Save data
-                const saveData = (unit, name, note, unitId) => {
-                    if (unitId) {
-                        $.ajax({
-                            method: 'PUT',
-                            url: `http://localhost:3023/units/data/${unitId}`,
+         $(document).ready(function() {
+            /*############## MAIN PAGE ##############*/
+                // Add-button - Hide/Show units-Form
+                $('button#add-btn').click(function() {
+                    // Reset Form
+                    $('#units-form-title').html('Form add')
+                    $('#unit').attr('data-id', '')
+                    $('#unit').prop('data-id', '')
+                    $('#unit').removeClass('is-invalid is-valid')
+
+                    // Toggle back
+                    $('#units-section').toggle()
+                    $('#units-table').toggle()
+                })
+                
+                // Read data
+                    $('#dataTable').DataTable({
+                        "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
+                        "processing": true,
+                        "serverSide": true,
+                        "ajax": "/units/data",
+                        "columns": [
+                            {'data': 'unit'},
+                            {'data': 'name'},
+                            {'data': 'note'},
+                            {
+                                'data': 'unit',
+                                'orderable': false,
+                                'render': function(data) {
+                                    return `<button data-id="${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></button>  <button data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></button>`
+                                }
+                            }
+                        ]
+                    })
+                
+                // Delete data
+                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
+                        e.preventDefault()
+                        const dataId = $(this).attr('data-id')
+                        $('a#delete-confirmation').attr("data-id", dataId)
+                    })
+                    
+                // Edit data
+                    $('#dataTable').on('click', 'button.anchor_edit', function(e) {
+                        e.preventDefault()
+                        // Get the PK
+                        const unit = $(this).attr('data-id')
+                        // const unitp = $(this).prop('data-id')
+                        // console.table('edit ditekan', unit, unitp);
+
+                        editData(unit)
+                    })
+                
+            /*############## MODAL ##############*/
+                // Delete Confirmation
+                    $('a#delete-confirmation').click(function() {
+                    const unit = $(this).attr('data-id')
+                    deleteData(unit)
+                })
+
+            /*############## FORM ##############*/
+                // Back-Event - Reset form and toggle back the units-form
+                $('#back-btn').click(function() {
+                    // Reset form
+                    $('#units-form').trigger('reset')
+                    $('#unit').attr('data-id', '')
+                    $('#unit').prop('data-id', '')
+                    $('#unit').removeClass('is-invalid is-valid')
+
+                    // Toggle back
+                    $('#units-section').toggle()
+                    $('#units-table').toggle()
+                })
+
+                // Submit-Event
+                $('#units-form').submit(function(event) {
+                    event.preventDefault()
+                    const unitUpd = $('#unit').val()
+                    const unitNew = $('#unit').prop('data-id')
+                    const name = $('#name').val()
+                    const note = $('#note').val()
+                    
+                    // Get the value
+                    
+                    // Tes
+                    // const unita = $('#unit').attr('data-id')
+                    // const unitp = $('#unit').prop('data-id')
+                    // console.table('sebelum submit', unita, unitp);
+                    
+                    // console.table('data untuk submit', unitUpdate, name, note, unit);
+                    // Save data
+
+                    if ($('#unit').hasClass('is-invalid')) {
+                        return event.preventDefault()
+                    } else if (unitNew) {
+                        saveData(unitNew, name, note, unitUpd)
+                    } else {
+                        saveData(unitUpd, name, note)
+                    }
+                })
+
+                // Unit-Event - Check if unit already exists
+                $('#unit').change(function() {
+                    const unit = $(this).val()
+                    // const unita = $(this).attr('data-id')
+                    // const unitp = $(this).prop('data-id')
+                    // console.table('check kalau unit ada di db', unita, unitp);
+
+                    if (unit === $(this).prop('data-id')) {
+                        $('input#unit').removeClass('is-invalid').addClass('is-valid')
+                        $('#unit-valid').html('Unit remain unchanged.')
+                    } else if (unit) {
+                        unitCheck(unit)
+                    } else {
+                        $('input#unit').removeClass('is-valid').addClass('is-invalid')
+                        $('#unit-invalid').html('Unit is required.')
+                    }
+                })
+
+                const unitCheck = (unit) => {
+                    $.ajax({
+                            method: 'POST',
+                            url: `http://localhost:3023/units/data/check`,
                             dataType: 'json',
                             data: {
+                                unit,
+                            }
+                        }).done(function(response) {
+                            if (response.data) {
+                                $('input#unit').removeClass('is-invalid').addClass('is-valid')
+                                $('#unit-valid').html('Unit is available.')
+                            } else {
+                                $('input#unit').removeClass('is-valid').addClass('is-invalid')
+                                $('#unit-invalid').html('Unit already exist.')
+                            }
+                        }).fail(function(error) {
+                            alert('gagal bro')
+                        })
+                }
+
+                })
+
+            /*############## API ##############*/
+                // Save data
+                const saveData = (unitNew, name, note, unitUpd) => {
+                    console.log(`masuk submit`);
+                    if (unitUpd) {
+                        console.log(`masuk save edit`);
+                        $.ajax({
+                            method: 'PUT',
+                            url: `http://localhost:3023/units/data/${unitNew}`,
+                            dataType: 'json',
+                            data: {
+                                    unitUpd,
                                     name,
                                     note
                             }
                         })
                         .done(function (response) {
+                            // Reset form
                             $('#units-form').trigger('reset')
                             $('#unit').attr('data-id', '')
+                            $('#unit').prop('data-id', '')
                             $('#unit').removeClass('is-invalid is-valid')
 
+                            // Toggle back and reload table
                             $('#units-section').toggle()
                             $('#units-table').toggle()
                             $('#dataTable').DataTable().clear().ajax.reload()
                         })
                         .fail(function (err) {
+                            console.log(err);
                             alert('gagal pake jquery')
                         })
                     } else {
+                        console.log(`masuk save add`);
                         $.ajax({
                             method: 'POST',
                             url: `http://localhost:3023/units/data`,
                             dataType: 'json',
                             data: {
-                                    unit,
+                                    unitNew,
                                     name,
                                     note,
                             }
                         })
                         .done(function (response) {
+                            // Reset form
                             $('#units-form').trigger('reset')
+                            $('#unit').attr('data-id', '')
+                            $('#unit').prop('data-id', '')
+                            $('#unit').removeClass('is-invalid is-valid')
+
+                            // Toggle back and reload table
                             $('#units-section').toggle()
                             $('#units-table').toggle()
                             $('#dataTable').DataTable().clear().ajax.reload()
@@ -89,134 +245,27 @@
                         url: `http://localhost:3023/units/data/${unit}`,
                         dataType: 'json'
                     }).done(function(response) {
-                        $('#add-btn').trigger('click')
-                        $('#units-form-title').html('Form edit')
-                        $('#unit').attr('data-id', response.rows[0].unit)
-
+                        // Setup form values 
+                        // $('#unit').attr('data-id', response.rows[0].unit)
+                        $('#unit').prop('data-id', response.rows[0].unit)
                         $('#unit').val(response.rows[0].unit)
                         $('#name').val(response.rows[0].name)
                         $('#note').val(response.rows[0].note)
+                        
+                        //test
+                        // const unit = $('#unit').attr('data-id')
+                        // const unitp = $('#unit').prop('data-id')
+                        // console.table('ambil di form edit', unit, unitp);
+
+                        // then switch to form
+                        $('#units-form-title').html('Form edit')
+                        $('#units-section').toggle()
+                        $('#units-table').toggle()
                     }).fail(function(error) {
                         alert('gagal cuy')
                     })
                 }
 
-                const unitCheck = (unit) => {
-                    $.ajax({
-                            method: 'POST',
-                            url: `http://localhost:3023/units/data`,
-                            dataType: 'json',
-                            data: {
-                                unit
-                            }
-                        }).done(function(response) {
-                            if (response.data) {
-                                $('input#unit').removeClass('is-invalid').addClass('is-valid')
-                            } else {
-                                $('input#unit').removeClass('is-valid').addClass('is-invalid')
-                                $('#unit-invalid').html('Unit already exist.')
-                            }
-                        }).fail(function(error) {
-                            alert('gagal bro')
-                        })
-                }
-
-                $(document).ready(function() {
-
-            /* UNITS - MAIN PAGE */
-                // Add-button - Hide/Show units-Form
-                $('button#add-btn').click(function() {
-                    $('#units-form-title').html('Add Data')
-                    $('#unit').removeClass('is-invalid is-valid')
-                    $('#unit').attr('data-id', '')
-
-                    $('#units-section').toggle()
-                    $('#units-table').toggle()
-                })
-                
-                // Table - Read data
-                    $('#dataTable').DataTable({
-                        "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
-                        "processing": true,
-                        "serverSide": true,
-                        "ajax": "/units/data",
-                        "columns": [
-                            {'data': 'unit'},
-                            {'data': 'name'},
-                            {'data': 'note'},
-                            {
-                                'data': 'unit',
-                                'orderable': false,
-                                'render': function(data) {
-                                    return `<button data-id="${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></button>  <button data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></button>`
-                                }
-                            }
-                        ]
-                    })
-                
-                // Table - Delete data
-                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
-                        e.preventDefault()
-                        const dataId = $(this).attr('data-id')
-                        $('a#delete-confirmation').attr("data-id", dataId)
-                    })
-                    
-                // Table - Edit data
-                    $('#dataTable').on('click', 'button.anchor_edit', function(e) {
-                        e.preventDefault()
-                        const unit = $(this).attr('data-id')
-                        editData(unit)
-                    })
-                
-            /* DELETE MODAL */
-                // Delete Confirmation
-                    $('a#delete-confirmation').click(function() {
-                    const unit = $(this).attr('data-id')
-                    deleteData(unit)
-                })
-
-            /* UNITS-FORM */
-                // Back-Event - Reset form and toggle back the units-form
-                $('#back-btn').click(function() {
-                    $('#units-form').trigger('reset')
-                    $('#unit').attr('data-id', '')
-                    $('#unit').removeClass('is-invalid is-valid')
-
-                    $('#units-section').toggle()
-                    $('#units-table').toggle()
-                })
-
-                $('#units-form').submit(function(event) {
-                    event.preventDefault()
-                    
-                    if ($('#unit').hasClass('is-invalid')) {
-                        return event.preventDefault()
-                    } else {
-                        const unitId = $('#unit').attr('data-id')
-                        const unit = $('#unit').val()
-                        const name = $('#name').val()
-                        const note = $('#note').val()
-    
-                        saveData(unit, name, note, unitId)
-                    }
-                })
-
-                // Unit-Event - Check if unit already exists
-                $('#unit').change(function() {
-                    const unit = $(this).val()
-
-                    if (unit === $('#unit').attr('data-id')) {
-                        $('input#unit').removeClass('is-invalid').addClass('is-valid')
-                        $('#unit-valid').html('Unit remain unchanged.')
-                    } else if (unit) {
-                        unitCheck(unit)
-                    } else {
-                        $('input#unit').removeClass('is-valid').addClass('is-invalid')
-                        $('#unit-invalid').html('Unit is required.')
-                    }
-                })
-
-                })
             </script>
 
 <%- include('../layouts/footer') %> 

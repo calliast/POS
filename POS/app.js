@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var session = require("express-session")
 var flash = require('connect-flash')
+var fileUpload = require('express-fileupload')
 
 async function main() {
   try {
@@ -44,6 +45,7 @@ main().then((db) => {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, "public")));
+  app.use(fileUpload())
   app.use(session({
     secret: 'rubicamp',
     resave: false,

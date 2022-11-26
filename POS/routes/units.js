@@ -1,4 +1,5 @@
 var express = require("express");
+const { isLoggedIn } = require("../public/javascripts/util");
 var router = express.Router();
 const helpers = require("../public/javascripts/util");
 
@@ -23,7 +24,7 @@ module.exports = function (db) {
   /* ALL CRUD */
   router
     .route("/data")
-    // 1. GET METHOD - Read all users
+    // 1. GET METHOD - Read all units
     .get(helpers.isLoggedIn, async function (req, res) {
       try {
         let params = [];
@@ -85,29 +86,13 @@ module.exports = function (db) {
     // 2. POST METHOD - Add a new unit
     .post(helpers.isLoggedIn, async function (req, res) {
       try {
-        sql = `SELECT * FROM units WHERE unit = $1`;
-        const { unit, name, note } = req.body;
+        const { unitNew, name, note } = req.body;
 
-        // Check if unit already exist
-        const unitCheck = await db.query(sql, [unit]);
-
-        if (unitCheck.rowCount) {
-          return res.json({
-            data: null,
-          });
-        }
-
-        if (!unitCheck.rowCount && !name && !note) {
-          `    `;
-          return res.json({
-            data: unitCheck.rows,
-          });
-        }
-
+        // Save data
         sql = `INSERT INTO units("unit", "name", "note") VALUES ($1, $2, $3)`;
 
         const insertData = await db.query(sql, [
-          unit,
+          unitNew,
           name,
           note
         ]);
@@ -117,6 +102,29 @@ module.exports = function (db) {
         res.json(error);
       }
     });
+
+    // Check if unit already exist
+    router.route('/data/check').post(isLoggedIn, async function(req,res) {
+      try {
+        sql = `SELECT * FROM units WHERE unit = $1`;
+        const { unit } = req.body;
+
+        const unitCheck = await db.query(sql, [unit]);
+        
+        if (unitCheck.rowCount) {
+          return res.json({
+            data: null,
+          })
+        }
+
+        res.json({
+          data: unitCheck.rows,
+        })
+        
+      } catch (error) {
+        res.json
+      }
+    })
 
     router
     .route("/data/:unit")
@@ -134,16 +142,22 @@ module.exports = function (db) {
     // PUT METHOD - Update edited user data
     .put(helpers.isLoggedIn, async function (req, res) {
       try {
+        const { unitUpd, name, note } = req.body
+        console.log(`masuk route update`);
         const response = [
-          req.params.unit,
-          req.body.name,
-          req.body.note,
+          unitUpd,
+          name,
+          note,
           req.params.unit,
         ];
+
+        console.log(response);
         
         sql =
         `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4`;
         const getData = await db.query(sql, response);
+
+        console.log('hasil update', getData);
         
         res.json(getData);
       } catch (error) {

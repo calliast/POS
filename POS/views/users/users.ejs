@@ -15,12 +15,162 @@
 
             <!-- Begin Delete Modal -->
             
-<%- include('./modal') %> 
+<%- include('../layouts/modal') %> 
 
             <!-- End of Delete Modal -->
 
             <script>
-            /* USERS API */
+            $(document).ready(function() {
+            /*############## MAIN PAGE ##############*/
+
+                // Show-form button
+                $('button#add-btn').click(function() {
+                    // Setup the form
+                    $('#password-form').show()
+                    $('#password').prop('required', true)
+                    $('#users-form').trigger('reset')
+                    $('#email').prop('data-email', '')
+                    $('#users-form-title').html('Add Data')
+                    
+                    // Show the form
+                    $('#users-section').toggle()
+                    $('#users-table').toggle()
+                })
+                
+                // Read data
+                    $('#dataTable').DataTable({
+                        "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
+                        "processing": true,
+                        "serverSide": true,
+                        "ajax": "/users/data",
+                        "columns": [
+                            {'data': 'userid'},
+                            {'data': 'email'},
+                            {'data': 'name'},
+                            {'data': 'role'},
+                            {
+                                'data': 'userid',
+                                'orderable': false,
+                                'render': function(data) {
+                                    return `<button data-id="${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></button>  <button data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></button>`
+                                }
+                            }
+                        ]
+                    })
+                
+                // Delete button
+                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
+                        e.preventDefault()
+                        // Get the PK
+                        const dataId = $(this).attr('data-id')
+
+                        // Append tag to the element
+                        $('a#delete-confirmation').attr("data-id", dataId)
+                    })
+                    
+                // Edit button
+                    $('#dataTable').on('click', 'button.anchor_edit', function(e) {
+                        e.preventDefault()
+                        // Get the PK
+                        const userId = $(this).attr('data-id')
+                        
+                        // Use the PK to get the data
+                        editData(userId)
+                    })
+                    
+            /*############## DELETE MODAL ##############*/
+                // Delete Confirmation
+                    $('a#delete-confirmation').click(function() {
+                    // Get the PK
+                    const dataId = $(this).attr('data-id')
+
+                    // Use the PK to delete the data
+                    deleteData(dataId)
+                })
+
+            /*############## ADD-EDIT FORM ##############*/
+                // Back-Event - Reset form and toggle back the users-form
+                $('#back-btn').click(function() {
+                    // Reset the form
+                    $('#users-form').trigger('reset')
+                    $('#email').removeClass('is-invalid is-valid')
+                    $('#email').prop('data-email', '')
+
+                    // Toggle back to the main page
+                    $('#users-section').toggle()
+                    $('#users-table').toggle()
+                })
+
+                // Submit-event
+                $('#users-form').submit(function(event) {
+                    event.preventDefault()
+                    
+                    if ($('#email').hasClass('is-invalid')) {
+                        return event.preventDefault()
+                    } else {
+                        const userid = $('#userid').val()
+                        const email = $('#email').val()
+                        const name = $('#name').val()
+                        const password = $('#password').val()
+                        const role = $('input[name="role"]:checked').val()
+    
+                        saveData(userid, email, name, password, role)
+                    }
+                })
+
+                // Check-email-Event - Check if email already exists
+                $('#email').change(function() {
+                    const checkTag = $(this).prop('data-email', 'true')
+                    const email = $(this).val()
+                    const emailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
+                    const emailIsValid = emailFormat.test(email)
+                    
+                    if (email === $('#email').attr('data-id')) {
+                        $('input#email').removeClass('is-invalid').addClass('is-valid')
+                        $('#email-valid').html('Email remain unchanged.')
+                    } else if (emailIsValid) {
+                        emailCheck(email, $(this).prop('data-email'))
+                    } else if (!email) {
+                        $('input#email').removeClass('is-valid').addClass('is-invalid')
+                        $('#email-invalid').html('Email is required.')
+                    } else {
+                        $('input#email').removeClass('is-valid').addClass('is-invalid')
+                        $('#email-invalid').html('Invalid format.')
+                    }
+                })
+
+                const emailCheck = (email, checkTag) => {
+                    $.ajax({
+                            method: 'POST',
+                            url: `http://localhost:3023/users/data`,
+                            dataType: 'json',
+                            data: {
+                                email,
+                                checkTag,
+                            }
+                        }).done(function(response) {
+                            if (response.data) {
+                                // Reset checkTag
+                                $('#email').prop('data-email', '')
+                                
+                                // Set input as valid
+                                $('input#email').removeClass('is-invalid').addClass('is-valid')
+                            } else {
+                                // Reset checkTag
+                                $('#email').prop('data-email', '')
+                                
+                                // Set input as invalid
+                                $('input#email').removeClass('is-valid').addClass('is-invalid')
+                                $('#email-invalid').html('Email address already exist.')
+                            }
+                        }).fail(function(error) {
+                            alert('gagal bro')
+                        })
+                }
+
+                })
+
+            /*############## API ##############*/
                 // Save data
                 const saveData = (userid, email, name, password, role) => {
                     if (userid) {
@@ -35,7 +185,10 @@
                             }
                         })
                         .done(function (response) {
+                            // Reset form and reload table after success response
                             $('#users-form').trigger('reset')
+                            $('#email').removeClass('is-invalid is-valid')
+
                             $('#users-section').toggle()
                             $('#users-table').toggle()
                             $('#dataTable').DataTable().clear().ajax.reload()
@@ -83,160 +236,31 @@
 
                 //Edit data
                 const editData = (userid) => {
+                    console.log(`masuk edit`);
                     $.ajax({
                         method: 'GET',
                         url: `http://localhost:3023/users/data/${userid}`,
                         dataType: 'json'
                     }).done(function(response) {
+                        console.log(response);
+                        // switch to form
                         $('#add-btn').trigger('click')
-                        $('#users-form-title').html('Edit Data')
+                        // Change form inputs
                         $('#password-form').hide()
                         $('#password').prop('required', false)
-                        $('#email').attr('data-id', response.rows[0].email)
+                        $('#users-form-title').html('Form edit')
                         
-                        // $('#email').prop('id', 'email-edit')
-
+                        // Then show preset form values 
+                        $('#email').attr('data-id', response.rows[0].email)
                         $('#userid').val(response.rows[0].userid)
                         $('#email').val(response.rows[0].email)
                         $('#name').val(response.rows[0].name)
-                        // $('#password').val(response.rows[0].password)
                         $(`input[name="role"][value="${response.rows[0].role}"]`).prop('checked', true)
                     }).fail(function(error) {
                         alert('gagal cuy')
                     })
                 }
 
-                const emailCheck = (email, checkTag) => {
-                    $.ajax({
-                            method: 'POST',
-                            url: `http://localhost:3023/users/data`,
-                            dataType: 'json',
-                            data: {
-                                email,
-                                checkTag,
-                            }
-                        }).done(function(response) {
-                            if (response.data) {
-                                $('#email').prop('data-email', '')
-                                
-                                $('input#email').removeClass('is-invalid').addClass('is-valid')
-                            } else {
-                                $('#email').prop('data-email', '')
-                                $('input#email').removeClass('is-valid').addClass('is-invalid')
-
-                                $('#email-invalid').html('Email address already exist.')
-                            }
-                        }).fail(function(error) {
-                            alert('gagal bro')
-                        })
-                }
-
-                $(document).ready(function() {
-
-            /* USERS - MAIN PAGE */
-                // Add-button - Hide/Show Users-Form
-                $('button#add-btn').click(function() {
-                    $('#users-form-title').html('Add Data')
-                    $('#users-form').trigger('reset')
-                    $('#password').prop('required', true)
-                    $('#email').prop('data-email', '')
-                    $('#password-form').show()
-
-                    $('#users-section').toggle()
-                    $('#users-table').toggle()
-                })
-                
-                // Table - Read data
-                    $('#dataTable').DataTable({
-                        "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
-                        "processing": true,
-                        "serverSide": true,
-                        "ajax": "/users/data",
-                        "columns": [
-                            {'data': 'userid'},
-                            {'data': 'email'},
-                            {'data': 'name'},
-                            {'data': 'role'},
-                            {
-                                'data': 'userid',
-                                'orderable': false,
-                                'render': function(data) {
-                                    return `<button data-id="${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></button>  <button data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></button>`
-                                }
-                            }
-                        ]
-                    })
-                
-                // Table - Delete data
-                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
-                        e.preventDefault()
-                        const dataId = $(this).attr('data-id')
-                        $('a#delete-confirmation').attr("data-id", dataId)
-                    })
-                    
-                // Table - Edit data
-                    $('#dataTable').on('click', 'button.anchor_edit', function(e) {
-                        e.preventDefault()
-                        const userId = $(this).attr('data-id')
-                        editData(userId)
-                    })
-                
-            /* DELETE MODAL */
-                // Delete Confirmation
-                    $('a#delete-confirmation').click(function() {
-                    const dataId = $(this).attr('data-id')
-                    deleteData(dataId)
-                })
-
-            /* USERS-FORM */
-                // Back-Event - Reset form and toggle back the users-form
-                $('#back-btn').click(function() {
-                    $('#users-form').trigger('reset')
-                    $('#email').removeClass('is-invalid is-valid')
-                    $('#email').prop('data-email', '')
-
-                    $('#users-section').toggle()
-                    $('#users-table').toggle()
-                })
-
-                $('#users-form').submit(function(event) {
-                    event.preventDefault()
-                    
-                    if ($('#email').hasClass('is-invalid')) {
-                        return event.preventDefault()
-                    } else {
-                        const userid = $('#userid').val()
-                        const email = $('#email').val()
-                        const name = $('#name').val()
-                        const password = $('#password').val()
-                        const role = $('input[name="role"]:checked').val()
-    
-                        saveData(userid, email, name, password, role)
-                    }
-                })
-
-                // Email-Event - Check if email already exists
-                $('#email').change(function() {
-                    const checkTag = $(this).prop('data-email', 'true')
-                    const email = $(this).val()
-                    const emailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
-                    const emailIsValid = emailFormat.test(email)
-                    
-                    if (email === $('#email').attr('data-id')) {
-                        $('input#email').removeClass('is-invalid').addClass('is-valid')
-                        $('#email-valid').html('Email remain unchanged.')
-                    } else if (emailIsValid) {
-                        emailCheck(email, $(this).prop('data-email'))
-                    } else if (!email) {
-                        $('input#email').removeClass('is-valid').addClass('is-invalid')
-                        $('#email-invalid').html('Email is required.')
-                    } else {
-                        $('input#email').removeClass('is-valid').addClass('is-invalid')
-                        $('#email-invalid').html('Invalid format.')
-                    }
-                })
-
-                })
             </script>
 
 <%- include('../layouts/footer') %> 

@@ -1,17 +1,19 @@
+const e = require("connect-flash");
 var express = require("express");
 var router = express.Router();
-const { isLoggedIn, currencyFormatter } = require("../public/javascripts/util");
+const path = require("path");
+const { isLoggedIn } = require("../public/javascripts/util");
 
 module.exports = function (db) {
   let runNum = 1;
   let sql = ``;
 
-  /* GOODS Route. */
+  /* Goods page Route. */
   router.route("/").get(isLoggedIn, async function (req, res) {
     try {
-        const getUnit = await db.query(`SELECT unit from units`)
+      const getUnit = await db.query(`SELECT * from units`);
 
-        console.log(getUnit);
+      console.log(getUnit);
       res.render("./goods/goods", {
         user: req.session.user,
         unit: getUnit.rows,
@@ -22,10 +24,150 @@ module.exports = function (db) {
     }
   });
 
-  /* ALL CRUD */
+  /* Add goods Route. */
+  router.route("/add").get(isLoggedIn, async function (req, res) {
+    try {
+      const getUnit = await db.query(`SELECT * from units`);
+
+      res.render("./goods/add", {
+        user: req.session.user,
+        unit: getUnit.rows,
+      });
+    } catch (error) {
+      res.json(error);
+    }
+  }).post(isLoggedIn, async function (req, res) {
+    try {
+      const {
+        barcode,
+        name,
+        stock,
+        purchasePrice,
+        sellingPrice,
+        unit,
+      } = req.body
+
+      /* Driver Code for picture upload */
+      // The name of the input field (i.e. "picture") is used to retrieve the uploaded file
+      let picture = req.files.picture
+      let pictureName = `${Date.now()}-${picture.name}`
+      
+      if (!req.files || Object.keys(req.files).length === 0) {
+        pictureName = `No picture`
+      }
+
+      let uploadPath = path.join(
+        __dirname,
+        "..",
+        "public",
+        "images",
+        "goods",
+        pictureName
+      );
+
+      // /* Driver code to add data */
+      sql = `INSERT INTO goods("barcode", "name", "stock", "unit", "purchaseprice", "sellingprice", "picture") VALUES($1,$2,$3,$4,$5,$6,$7)`
+
+      const response = [
+        barcode,
+        name,
+        stock,
+        unit,
+        purchasePrice,
+        sellingPrice,
+        pictureName,
+      ];
+
+      console.log({response});
+
+      await db.query(sql, response)
+      await picture.mv(uploadPath)
+
+      res.redirect('/goods')
+    } catch (error) {
+      res.json(error)
+    }
+  })
+
+  /* Edit a goods Route. */
+  router
+    .route("/edit/:barcode")
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        sql = `SELECT * FROM goods WHERE "barcode" = $1`;
+
+        const { barcode } = req.params;
+
+        console.log(barcode);
+        console.log(sql);
+        const selectData = await db.query(sql, [barcode]);
+        const getUnit = await db.query(`SELECT * from units`);
+
+        console.log({
+          selectData,
+          getUnit,
+        });
+
+        res.render("./goods/edit", {
+          user: req.session.user,
+          data: selectData.rows,
+          unit: getUnit.rows,
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    .post(isLoggedIn, async function (req, res) {
+      try {
+
+        /* Driver Code for picture upload */
+        // The name of the input field (i.e. "picture") is used to retrieve the uploaded file
+        let picture = req.files.picture;
+        let pictureName = `${Date.now()}-${picture.name}`
+
+        if (!req.files || Object.keys(req.files).length === 0) {
+          pictureName = `No picture`
+        }
+        
+        let uploadPath = path.join(
+          __dirname,
+          "..",
+          "public",
+          "images",
+          "goods",
+          pictureName
+        );
+
+        // /* Driver code to update data */
+        sql = `UPDATE goods SET "barcode" = $1, "name" = $2, "stock" = $3, "purchaseprice" = $4, "sellingprice" = $5, "unit" = $6, "picture" = $7 WHERE "barcode" = $8`;
+
+        const { barcode, name, stock, purchasePrice, sellingPrice, unit } =
+          req.body;
+
+        const response = [
+          barcode,
+          name,
+          stock,
+          purchasePrice,
+          sellingPrice,
+          unit,
+          pictureName,
+          barcode,
+        ];
+
+        console.log({response});
+        await db.query(sql, response)
+        await picture.mv(uploadPath)
+
+        res.redirect('/goods')
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
+  // API - Read all goods - GET METHOD
   router
     .route("/data")
-    // 1. GET METHOD - Read all users
     .get(isLoggedIn, async function (req, res) {
       try {
         let params = [];
@@ -74,7 +216,6 @@ module.exports = function (db) {
           recordsTotal: total.rows[0].total,
           recordsFiltered: total.rows[0].total,
           data: data.rows,
-          currencyFormatter,
         };
 
         runNum++;
@@ -83,83 +224,38 @@ module.exports = function (db) {
         res.json(error);
       }
     })
-    // 2. POST METHOD - Add a new unit
-    .post(isLoggedIn, async function (req, res) {
-      try {
-        sql = `SELECT * FROM units WHERE barcode = $1`;
-        const {
-          barcode,
-          name,
-          stock,
-          purchasePrice,
-          sellingPrice,
-          unit,
-          picture,
-          checkTag,
-        } = req.body;
 
-        // Check if unit already exist
-        const barcodeCheck = await db.query(sql, [barcode]);
+  // Check if barcode already used - POST METHOD
+  router.route("/data/check").post(isLoggedIn, async function (req, res) {
+    try {
+      sql = `SELECT * FROM goods WHERE barcode = $1`;
+      const { barcode } = req.body;
 
-        if (checkTag) {
-          if (emailCheck.rowCount) {
-            return res.json({
-              data: null,
-            });
-          } else {
-            return res.json({
-              data: emailCheck.rows,
-            });
-          }
-        }
+      const barcodeCheck = await db.query(sql, [barcode]);
 
-        sql = `INSERT INTO units("unit", "name", "note") VALUES ($1, $2, $3)`;
-
-        const insertData = await db.query(sql, [unit, name, note]);
-
-        res.json(insertData);
-      } catch (error) {
-        res.json(error);
+      if (barcodeCheck.rowCount) {
+        return res.json({
+          data: null,
+        });
       }
-    });
 
+      res.json({
+        data: barcodeCheck.rows,
+      });
+    } catch (error) {
+      res.json;
+    }
+  });
+
+  // 5. Delete a goods and its data - DELETE METHOD
   router
-    .route("/data/:unit")
-    // GET METHOD - Pull user's data to the edit page
-    .get(isLoggedIn, async function (req, res) {
-      try {
-        sql = `SELECT * FROM units WHERE "unit" = $1`;
-        const unit = req.params.unit;
-        const getData = await db.query(sql, [unit]);
-        res.json(getData);
-      } catch (error) {
-        res.json(error);
-      }
-    })
-    // PUT METHOD - Update edited user data
-    .put(isLoggedIn, async function (req, res) {
-      try {
-        const response = [
-          req.params.unit,
-          req.body.name,
-          req.body.note,
-          req.params.unit,
-        ];
-
-        sql = `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4`;
-        const getData = await db.query(sql, response);
-
-        res.json(getData);
-      } catch (error) {
-        res.json(error);
-      }
-    })
-    // 3. DELETE METHOD - Delete a user and its data
+    .route("/data/:barcode")
     .delete(isLoggedIn, async function (req, res) {
       try {
-        sql = `DELETE FROM units WHERE "unit" = $1`;
-        const unit = req.params.unit;
-        const deleteData = await db.query(sql, [unit]);
+        sql = `DELETE FROM goods WHERE "barcode" = $1`;
+        const barcode = req.params.barcode;
+        console.log("ini route delete", sql, barcode);
+        const deleteData = await db.query(sql, [barcode]);
         res.json(deleteData);
       } catch (error) {
         res.json(error);
