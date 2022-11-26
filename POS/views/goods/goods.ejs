@@ -22,6 +22,20 @@
             <script>
 
             $(document).ready(function() {
+
+                //Delete data
+                const deleteData = (barcode) => {
+                    $.ajax({
+                        method: 'DELETE',
+                        url: `http://localhost:3023/goods/data/${barcode}`,
+                        dataType: 'json'
+                    }).done(function(response) {
+                        $('#deleteModal').modal('toggle')
+                        $('#dataTable').DataTable().clear().ajax.reload()
+                    }).fail(function(error) {
+                        alert('gagal bro')
+                    })
+                }
             
             /*############## MAIN PAGE - GOODS ##############*/
 
@@ -66,10 +80,10 @@
                     })
                 
                 // Table - Delete data
-                    $('#dataTable').on('click', 'button.anchor_remove', function(e) {
+                    $('#dataTable').on('click', 'a.anchor_remove', function(e) {
                         e.preventDefault()
-                        const dataId = $(this).attr('data-id')
-                        $('a#delete-confirmation').attr("data-id", dataId)
+                        const barcode = $(this).attr('data-id')
+                        $('a#delete-confirmation').attr("data-id", barcode)
                     })
                 
             /*################ MODAL - DELETE ################*/
