@@ -20,44 +20,72 @@ module.exports = function (db) {
   });
 
   // Generate new invoice then redirect to add form
-  router.route("/add").get(isLoggedIn, async function (req, res) {
+  router.route("/new").get(isLoggedIn, async function (req, res) {
     try {
       const { userid } = req.session.user;
+      console.log(userid);
       fromPurchases = `INSERT INTO purchases (totalsum, operator) VALUES(0, $1) returning *`;
-      const { rows } = await db.query(fromPurchases, [userid]);
-      res.redirect(308, `/purchases/edit/${rows[0].invoice}`);
+      const getInvoice = await db.query(fromPurchases, [userid]);
+      res.redirect(`/purchases/id/${getInvoice.rows[0].invoice}`);
     } catch (error) {
       res.json(error);
     }
   });
 
-  // Redirect to add form
-  router.route("/edit/:invoice").get(isLoggedIn, async function (req, res) {
-    try {
-      const { invoice } = req.params;
+  router
+    .route("/new/:invoice")
+    // Read table invoice
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        const whereInvoice = req.params.invoice;
+        let params = [];
 
-      let fromPurchases = `SELECT * FROM purchases LEFT OUTER JOIN users ON purchases.operator = users.userid WHERE "invoice" = $1`;
-      let fromGoods = `SELECT * FROM goods`;
-      let fromSupplier = `SELECT * FROM suppliers`;
+        const sortBy = req.query.columns[req.query.order[0].column].data;
+        const sortMode = req.query.order[0].dir;
 
-      const getPurchases = await db.query(fromPurchases, [invoice]);
-      const getGoods = await db.query(fromGoods);
-      const getSupplier = await db.query(fromSupplier);
-      res.render("./purchases/edit", {
-        user: req.session.user,
-        invoice: getPurchases.rows[0],
-        goods: getGoods.rows,
-        supplier: getSupplier.rows,
-        info: req.flash(`info`),
-        setDate: moment,
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  });
+        console.log({ queryUnits: req.query });
+
+        fromInvoiceJoin = `SELECT purchaseitems.id, purchaseitems.invoice, purchaseitems.itemcode, goods.name, purchaseitems.quantity, purchaseitems.purchaseprice, purchaseitems.totalprice FROM purchaseitems LEFT OUTER JOIN goods ON purchaseitems.itemcode = goods.barcode WHERE invoice = $1`;
+
+        const data = await db.query(fromInvoiceJoin, [whereInvoice]);
+
+        const response = {
+          draw: Number(req.query.draw),
+          data: data.rows,
+          info: req.flash(`info`),
+        };
+
+        runNum++;
+        res.json(response);
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // Update the supplier in a purchase
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        console.log(`masuk put nih`);
+        const whereInvoice = req.params.invoice;
+        let fromPurchases = `UPDATE purchases SET "supplier" = $1 WHERE "invoice" = $2`;
+        console.log("ini invoice", whereInvoice);
+        if (req.body.suppliers) {
+          console.log("ini suppliers", req.body.suppliers);
+          const updatedPurchases = await db.query(fromPurchases, [
+            req.body.suppliers,
+            whereInvoice,
+          ]);
+          return res.redirect("/purchases");
+        } else {
+          console.log("suppliernya gada");
+          return res.redirect("/purchases");
+        }
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
   // Read data purchases
-  router.route("/data").get(isLoggedIn, async function (req, res) {
+  router.route("/id").get(isLoggedIn, async function (req, res) {
     try {
       let params = [];
 
@@ -73,7 +101,7 @@ module.exports = function (db) {
       let queryTotal = `SELECT count(*) as TOTAL FROM purchases${
         params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
       }`;
-      let queryData = `SELECT * FROM purchases${
+      let queryData = `SELECT * FROM purchases LEFT OUTER JOIN suppliers ON purchases.supplier = suppliers.supplierid ${
         params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
       } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
@@ -95,17 +123,55 @@ module.exports = function (db) {
     }
   });
 
-  // Remove an invoice from purchases list
-  router.route("/data/:invoice").post(isLoggedIn, async function (req, res) {
-    try {
-      let fromPurchases = `DELETE FROM purchases WHERE "invoice" = $1`;
-      const whereInvoice = req.params.invoice;
-      const getPurchases = await db.query(fromPurchases, [whereInvoice]);
-      res.json(getPurchases.rows[0]);
-    } catch (error) {
-      res.json(error);
-    }
-  });
+  // Redirect to add form
+  router
+    .route("/id/:invoice")
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        const { invoice } = req.params;
+
+        let fromPurchases = `SELECT * FROM purchases LEFT OUTER JOIN users ON purchases.operator = users.userid WHERE "invoice" = $1`;
+        let fromGoods = `SELECT * FROM goods`;
+        let fromSupplier = `SELECT * FROM suppliers`;
+
+        const getPurchases = await db.query(fromPurchases, [invoice]);
+        const getGoods = await db.query(fromGoods);
+        const getSupplier = await db.query(fromSupplier);
+        res.render("./purchases/edit", {
+          user: req.session.user,
+          invoice: getPurchases.rows[0],
+          goods: getGoods.rows,
+          supplier: getSupplier.rows,
+          info: req.flash(`info`),
+          setDate: moment,
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // Update totalsum of purchases
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        let fromPurchases = `SELECT * FROM purchases WHERE "invoice" = $1`;
+        const whereInvoice = req.params.invoice;
+        const getPurchases = await db.query(fromPurchases, [whereInvoice]);
+        res.json(getPurchases.rows[0]);
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // Remove an invoice from purchases list
+    .delete(isLoggedIn, async function (req, res) {
+      try {
+        let fromPurchases = `DELETE FROM purchases WHERE "invoice" = $1`;
+        const whereInvoice = req.params.invoice;
+        const removeInvoice = await db.query(fromPurchases, [whereInvoice]);
+        console.log(`masuk delete`, removeInvoice);
+        res.json(getPurchases.rows[0]);
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
   // Read data invoice
   router
@@ -155,28 +221,32 @@ module.exports = function (db) {
     });
 
   // Remove an item from an invoice
-  router.route("/delete/:id").delete(isLoggedIn, async function (req, res) {
-    try {
-      fromInvoice = `DELETE FROM purchaseitems WHERE "id" = $1 returning *`;
-      const whereId = req.params.id;
-      const deleteItem = await db.query(fromInvoice, [parseInt(whereId)]);
-      res.json(deleteItem);
-    } catch (error) {
-      res.json(error);
-    }
-  });
+  router
+    .route("/invoice/:id")
+    .delete(isLoggedIn, async function (req, res) {
+      try {
+        fromInvoice = `DELETE FROM purchaseitems WHERE "id" = $1 returning *`;
+        const whereId = req.params.id;
+        const deleteItem = await db.query(fromInvoice, [parseInt(whereId)]);
+        res.json(deleteItem);
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
-  // Update totalsum from purchases
-  router.route("/update/:invoice").post(isLoggedIn, async function (req, res) {
+  // Get item from goods
+  router
+  .route('/get-goods/:barcode')
+  .post(isLoggedIn, async function (req, res) {
     try {
-      let fromPurchases = `SELECT * FROM purchases WHERE "invoice" = $1`;
-      const whereInvoice = req.params.invoice;
-      const getPurchases = await db.query(fromPurchases, [whereInvoice]);
-      res.json(getPurchases.rows[0]);
+      const { barcode } = req.params;
+      let fromGoods = `SELECT * FROM goods WHERE barcode = $1`;
+      const getList = await db.query(fromGoods, [barcode]);
+      res.json(getList.rows[0]);
     } catch (error) {
       res.json(error);
     }
-  });
+  })
 
   runNum++;
 
