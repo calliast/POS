@@ -115,14 +115,15 @@
               class="form-control"
               placeholder="Picture"
               accept="image/png, image/jpeg"
+              value="<%= data[0].picture ? `${data[0].picture}` : '' %>"
             />
           </div>
         </div>
       </form>
-        <div id="preview-form" class="form-group row" style="display: none;">
+        <div id="preview-form" class="form-group row">
           <label for="" class="col-sm-2 col-form-label">Preview</label>
           <div class="col-sm-10">
-            <img id="picturePreview" src="" alt="Picture Preview" width="300" height="auto">
+            <img id="picturePreview" src="<%= data[0].picture ? `/images/goods/${data[0].picture}` : '' %>" alt="No picture" width="300" height="auto">
           </div>
         </div>
     </div>
@@ -155,6 +156,9 @@
 <!-- End of Main Content -->
 
   <script>
+    const a = '<%- data[0].picture %>'
+    console.log('ini data picture', a);
+
     $("document").ready(function () {
       // Submit-event
       // $('#goods-form').submit(function() {
@@ -174,6 +178,7 @@
         const [file] = picture.files
         if (file) {
           $('#preview-form').show()
+          console.log((window.URL || window.webkitURL).createObjectURL(file));
           picturePreview.src = URL.createObjectURL(file)
         }
       })

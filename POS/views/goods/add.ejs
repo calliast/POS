@@ -114,10 +114,10 @@
           </div>
         </div>
       </form>
-        <div id="preview-form" class="form-group row" style="display: none;">
+        <div id="preview-form" class="form-group row">
           <label for="" class="col-sm-2 col-form-label">Preview</label>
           <div class="col-sm-10">
-            <img id="picturePreview" src="" alt="Picture Preview" width="300" height="auto">
+            <img id="picturePreview" src="" alt="No picture" width="300" height="auto">
           </div>
         </div>
     </div>
@@ -168,7 +168,7 @@
         // $('#picture-form').submit()
         const [file] = picture.files
         if (file) {
-          $('#preview-form').show()
+          // $('#preview-form').show()
           picturePreview.src = URL.createObjectURL(file)
         }
       })
