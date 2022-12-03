@@ -1,3 +1,5 @@
+-- PURCHASES
+-- update good's stock when item added on PURCHASE
 CREATE OR REPLACE FUNCTION update_stockOnPurchase() RETURNS TRIGGER as $set_stockOnPurchaseItems$
     DECLARE
     old_stock INTEGER;
@@ -36,7 +38,7 @@ CREATE TRIGGER set_stockOnPurchaseItems
 AFTER INSERT OR UPDATE OR DELETE on purchaseitems
     FOR EACH ROW EXECUTE FUNCTION update_stockOnPurchase();
 
--- update total price
+-- update total price on PURCHASES
 CREATE OR REPLACE FUNCTION update_priceOnPurchase) RETURNS TRIGGER AS $set_totalPrice_onPurchase$
     DECLARE
         purchase_price NUMERIC;
@@ -51,3 +53,18 @@ $set_totalPrice_onPurchase$ LANGUAGE plpgsql;
 CREATE TRIGGER set_totalPrice_onPurchase
 BEFORE INSERT OR UPDATE ON purchaseitems
     FOR EACH ROW EXECUTE FUNCTION update_priceOnPurchase();
+
+-- generate invoice on purchases
+
+CREATE OR REPLACE FUNCTION invoice() RETURNS text AS $$
+ 
+    BEGIN
+	IF EXISTS(SELECT invoice FROM purchases WHERE invoice = 'INV-' || to_char(CURRENT_DATE, 'YYYYMMDD') || - 1) THEN
+		return 'INV-' || to_char(CURRENT_DATE, 'YYYYMMDD') || - nextval('purchases_invoice_seq');
+	ELSE
+		ALTER SEQUENCE purchases_invoice_seq RESTART WITH 1;
+		return 'INV-' || to_char(CURRENT_DATE, 'YYYYMMDD') || - nextval('purchases_invoice_seq');
+	END IF;
+END;
+
+$$ LANGUAGE plpgsql;

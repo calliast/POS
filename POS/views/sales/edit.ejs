@@ -5,14 +5,15 @@
 <div class="container-fluid">
 
     <!-- Page Heading -->
-        <h1 class="h3 mb-2 text-gray-800">Purchases</h1>
+        <h1 class="h3 mb-2 text-gray-800">Sales</h1>
+        <p>This is data of Sales</p>
 
-        <div id="purchase-section" class="card shadow mb-4">
+        <div id="sale-section" class="card shadow mb-4">
           <div class="card-header py-3">
-              <h3 id="purchase-form-title" class="m-0 font-weight-light text-grey">New Transaction</h3>
+              <h3 id="sale-form-title" class="m-0 font-weight-light text-grey">New Transaction</h3>
           </div>
           <div class="card-body">
-              <form id="purchase-form" method="POST">
+              <form id="sale-form" method="POST">
                   <div class="row pb-3">
                       <div class="col">
                         <label for="invoice" class="col-sm-auto col-form-label">Invoice</label>
@@ -28,7 +29,7 @@
                       </div>
                   </div>
               </form>
-              <form id="invoice-form" action="/purchases/invoice/">
+              <form id="invoice-form" action="/sales/invoice/">
                   <hr>
                   <div class="row pb-3">
                       <div class="col">
@@ -50,8 +51,8 @@
                   </div>
                   <div class="row pb-3">
                       <div class="col">
-                          <label for="purchaseprice" class="col-sm-auto col-form-label">Purchase Price</label>
-                          <input type="number" step="1" min="'0" class="form-control" id="purchaseprice" placeholder="0.00" value="<%= goods[0].purchaseprice %>" required>
+                          <label for="sellingprice" class="col-sm-auto col-form-label">Selling Price</label>
+                          <input type="number" step="1" min="'0" class="form-control" id="sellingprice" placeholder="0.00" value="<%= goods[0].sellingprice %>" required>
                       </div>
                       <div class="col">
                           <label for="quantity" class="col-sm-auto col-form-label">Qty</label>
@@ -101,30 +102,41 @@
           </div>
           <div class="card-footer">
               <div class="form-group row">
-                  <label for="unit" class="col-sm-2 col-form-label">Total Summary</label>
+                  <label for="totalsum" class="col-sm-2 col-form-label">Total Summary</label>
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" id="totalsum" placeholder="0,00" value="<%= invoice.totalsum %>" disabled>
+                    <input type="text" class="form-control" id="totalsum" placeholder="0,00" value="<%= invoice.totalsum %>" readonly>
                 </div>
                 </div>
-                <form id="supplier-form" action="/purchases/new/<%= invoice.invoice %>" method="POST">
+            <form id="customer-form" action="/sales/new/<%= invoice.invoice %>" method="POST">
                 <div class="form-group row">
-                    <label for="name" class="col-sm-2 col-form-label pb-3">Supplier</label>
+                    <label for="pay" class="col-sm-2 col-form-label">Pay</label>
                     <div class="col-sm-10">
-                        <select id="suppliers" name="suppliers" class="form-control">
-                            <% supplier.forEach((data) => { %>
-                                <option value="<%= data.supplierid %>"><%= data.supplierid + '. ' + data.name %></option>
+                      <input name="pay" type="number" class="form-control" id="pay" placeholder="0,00" value="<%= invoice.pay ? invoice.pay: 0 %>" pattern="[0-9]+" title="please enter number only" min="0" required>
+                  </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="change" class="col-sm-2 col-form-label">Change</label>
+                    <div class="col-sm-10">
+                      <input name="change" type="text" class="form-control" id="change" placeholder="0,00" value="<%= invoice.change %>" readonly>
+                  </div>
+                  </div>
+                <div class="form-group row">
+                    <label for="customers" class="col-sm-2 col-form-label pb-3">Customer</label>
+                    <div class="col-sm-10">
+                        <select id="customer" name="customer" class="form-control">
+                            <% customer.forEach((data) => { %>
+                                <option value="<%= data.customerid %>"><%= data.customerid + '. ' + data.name %></option>
                                 <% }) %>
                             </select>
                         </div>
                     </div>
-                </form>
-                <button form="supplier-form" id="purchase-save-btn" type="submit" class="btn btn-success btn-icon-split">
+                <button form="customer-form" id="sale-save-btn" type="submit" class="btn btn-success btn-icon-split">
                     <span class="icon text-white-50">
                         <i class="fas fa-plus"></i>
                     </span>
                     <span class="text">Finish</span>
                 </button>
-              <a href="/purchases" class="btn btn-warning btn-icon-split" id="back-btn">
+              <a href="/sales" class="btn btn-warning btn-icon-split" id="back-btn">
                   <span class="icon text-white-50">
                       <i class="fas fa-arrow-left"></i>
                   </span>
@@ -143,9 +155,10 @@
 <!-- End of Delete Modal -->
 
   <script>
+    
+
       $("document").ready(function () {
         const noInvoice = $('#invoice').val()
-        console.log(noInvoice);
 
      // Read datatable Main Page
                 $('#dataInvoice').DataTable({
@@ -155,14 +168,14 @@
                     "info": false,
                     "processing": true,
                     "serverSide": true,
-                    "ajax": `/purchases/new/${noInvoice}`,
+                    "ajax": `/sales/new/${noInvoice}`,
                     "columns": [
                         {'data': 'id'},
                         {'data': 'itemcode'},
                         {'data': 'name'},
                         {'data': 'quantity'},
                         {
-                            'data': 'purchaseprice',
+                            'data': 'sellingprice',
                             'render': function(data) {
                                 return currencyFormatter.format(data)
                             }
@@ -190,19 +203,25 @@
                     const invoice = $('#invoice').val()
                     const itemcode = $('#itemcode').val()
                     const qty = $('#quantity').val()
-                    console.log({
-                        invoice,
-                        itemcode,
-                        qty
-                    });
+
                     addItem(invoice, itemcode, qty)
                 })
     
      // Add quantity event
                 $('#quantity').change(function() {
-                    const purchasePrice = $('#purchaseprice').val()
+                    const sellingPrice = $('#sellingprice').val()
                     const quantity = $(this).val()
-                    $('#totalprice').val(quantity * purchasePrice)
+
+                    // subtract goods stock
+                    updateGoods($('#itemcode').val(), true)
+                    $('#totalprice').val(quantity * sellingPrice)
+                })
+                
+    // Pay event
+                $('#pay').on('input', function() {
+                    const totalsum = $('#totalsum').val()
+                    const pay = $(this).val()
+                    $('#change').val(pay - totalsum)
                 })
 
      // Select item event
@@ -229,14 +248,12 @@
 
                 // add item list
                 const addItem = (invoice, itemcode, quantity) => {
-                    $.post(`http://localhost:3023/purchases/invoice`, { invoice, itemcode, quantity })
+                    $.post(`http://localhost:3023/sales/invoice`, { invoice, itemcode, quantity })
                         .done(function (response) {
-                        console.log(response);
-                        // Reset form 
-                        $('#invoice-form').trigger('reset')
-
                         // Reload table
+                        $('#quantity').val(0)
                         $('#dataInvoice').DataTable().clear().ajax.reload();
+
                         updateSum()
                         })
                         .fail(function (err) {
@@ -249,11 +266,13 @@
                 const deleteData = (id) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/purchases/invoice/${id}`,
+                        url: `http://localhost:3023/sales/invoice/${id}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
 
+                        // subtract goods stock
+                        updateGoods($('#itemcode').val(), true)
                         $('#dataInvoice').DataTable().clear().ajax.reload()
                         updateSum()
                     }).fail(function(error) {
@@ -264,7 +283,7 @@
                 // Update totalsum
                 const updateSum = () => {
                     const invoice = $('#invoice').val()
-                    $.post(`http://localhost:3023/purchases/id/${invoice}`)
+                    $.post(`http://localhost:3023/sales/id/${invoice}`)
                     .done(function(response) {
                         $('#totalsum').val(response.totalsum)
                     })
@@ -274,12 +293,16 @@
                 }
 
                 // Get Goods
-                const updateGoods = (barcode) => {
-                    $.post(`http://localhost:3023/purchases/get-goods/${barcode}`)
+                const updateGoods = (barcode, stock) => {
+                    $.post(`http://localhost:3023/sales/get-goods/${barcode}`)
                     .done(function(response) {
-                        $('#goodsname').val(response.name)
-                        $('#stock').val(response.stock)
-                        $('#purchaseprice').val(response.purchaseprice)
+                        if (stock) {
+                            $('#stock').val(response.stock - $('#quantity').val())
+                        } else {
+                            $('#goodsname').val(response.name)
+                            $('#stock').val(response.stock)
+                            $('#sellingprice').val(response.sellingprice)
+                        }
                     })
                     .fail(function(error) {
                         alert(`update goods gagal bro`)
