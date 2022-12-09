@@ -9,12 +9,8 @@ module.exports = function (db) {
   router.route("/").get(helpers.isLoggedIn, async function (req, res) {
     try {
       // let sql = `SELECT "userid", "email", "name", "password", "role" FROM users ORDER BY "userid" ASC`;
-      let sql = `SELECT * FROM users`;
-      const readData = await db.query(sql);
-      // const readData = `test`
       res.render("./page/index", {
         title: "Express",
-        data: readData.rows,
         user: req.session.user,
       });
     } catch (error) {

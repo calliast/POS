@@ -190,11 +190,7 @@
                     const invoice = $('#invoice').val()
                     const itemcode = $('#itemcode').val()
                     const qty = $('#quantity').val()
-                    console.log({
-                        invoice,
-                        itemcode,
-                        qty
-                    });
+
                     addItem(invoice, itemcode, qty)
                 })
     
@@ -202,6 +198,9 @@
                 $('#quantity').change(function() {
                     const purchasePrice = $('#purchaseprice').val()
                     const quantity = $(this).val()
+
+                    // update goods stock and total price
+                    updateGoods($('#itemcode').val(), true)
                     $('#totalprice').val(quantity * purchasePrice)
                 })
 
@@ -231,9 +230,8 @@
                 const addItem = (invoice, itemcode, quantity) => {
                     $.post(`http://localhost:3023/purchases/invoice`, { invoice, itemcode, quantity })
                         .done(function (response) {
-                        console.log(response);
-                        // Reset form 
-                        $('#invoice-form').trigger('reset')
+                        // Reset quantity
+                        $('#quantity').val(0)
 
                         // Reload table
                         $('#dataInvoice').DataTable().clear().ajax.reload();
@@ -274,12 +272,16 @@
                 }
 
                 // Get Goods
-                const updateGoods = (barcode) => {
+                const updateGoods = (barcode, stock) => {
                     $.post(`http://localhost:3023/purchases/get-goods/${barcode}`)
                     .done(function(response) {
-                        $('#goodsname').val(response.name)
-                        $('#stock').val(response.stock)
-                        $('#purchaseprice').val(response.purchaseprice)
+                        if (stock) {
+                            $('#stock').val(response.stock + parseInt($('#quantity').val()))
+                        } else {
+                            $('#goodsname').val(response.name)
+                            $('#stock').val(response.stock)
+                            $('#purchaseprice').val(response.purchaseprice)
+                        }
                     })
                     .fail(function(error) {
                         alert(`update goods gagal bro`)

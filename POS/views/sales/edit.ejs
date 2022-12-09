@@ -218,7 +218,7 @@
                 })
                 
     // Pay event
-                $('#pay').on('input', function() {
+                $('#pay').keyup(function() {
                     const totalsum = $('#totalsum').val()
                     const pay = $(this).val()
                     $('#change').val(pay - totalsum)

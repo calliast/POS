@@ -114,8 +114,6 @@ module.exports = function (db) {
         const sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        console.log({ queryGoods: req.query });
-
         let queryTotal = `SELECT count(*) as TOTAL FROM suppliers${
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         }`;
@@ -123,25 +121,8 @@ module.exports = function (db) {
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
-        console.log({
-          sqlQuery: {
-            queryTotal,
-            queryData,
-          },
-        });
-
         const total = await db.query(queryTotal);
         const data = await db.query(queryData);
-
-        console.log({
-          "Percobaan ke": runNum,
-          limit,
-          offset,
-          sortBy,
-          sortMode,
-          hasil: total.rows,
-          data: data.rows,
-        });
 
         const response = {
           draw: Number(req.query.draw),

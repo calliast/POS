@@ -51,7 +51,11 @@
                                 }
                             },
                             
-                        ]
+                        ],
+                        "footerCallback": function(row, data, start, end, display) {
+                      let api = this.api()
+                      $(api.column(end).footer()).html('Total')
+                    },
                     })
                 
                 // Delete data
