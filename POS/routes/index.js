@@ -1,16 +1,14 @@
 var express = require("express");
 var router = express.Router();
 const bcrypt = require("bcrypt");
-const helpers = require("../public/javascripts/util");
+const { isLoggedIn } = require("../public/javascripts/util");
 
 module.exports = function (db) {
-
   /* HOMEPAGE - DASHBOARD */
-  router.route("/").get(helpers.isLoggedIn, async function (req, res) {
+  router.route("/").get(isLoggedIn, async function (req, res) {
     try {
       // let sql = `SELECT "userid", "email", "name", "password", "role" FROM users ORDER BY "userid" ASC`;
       res.render("./page/index", {
-        title: "Express",
         user: req.session.user,
       });
     } catch (error) {
@@ -46,11 +44,11 @@ module.exports = function (db) {
         );
         if (!checkPassword) {
           req.flash(`info`, `Password Salah!`);
-          return res.redirect('/login');
+          return res.redirect("/login");
         }
 
         req.session.user = checkEmail.rows[0];
-        res.redirect('/');
+        res.redirect("/");
       } catch (error) {
         res.send(error);
       }
@@ -74,7 +72,7 @@ module.exports = function (db) {
         console.log(checkData.rows);
         if (checkData.rowCount > 0) {
           req.flash(`info`, `Email sudah terdaftar`);
-          return res.redirect('/register');
+          return res.redirect("/register");
         }
 
         sql = `INSERT INTO users("email", "name", "password", "role") VALUES ($1, $2, $3, $4)`;

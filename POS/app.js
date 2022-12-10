@@ -37,6 +37,7 @@ main().then((db) => {
   var customersRouter = require("./routes/customers")(db);
   var salesRouter = require("./routes/sales")(db);
   var mainRouter = require("./routes/main")(db);
+  var profileRouter = require("./routes/profile")(db);
 
   var app = express();
 
@@ -67,6 +68,7 @@ main().then((db) => {
   app.use("/customers", customersRouter);
   app.use("/sales", salesRouter);
   app.use("/main", mainRouter);
+  app.use("/profile", profileRouter);
 
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {

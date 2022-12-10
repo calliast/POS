@@ -24,17 +24,12 @@ module.exports = function (db) {
       let params = [];
       const {startDate, endDate} = req.query
 
-      console.log({
-        startDate,
-        endDate
-      });
-      
       if (startDate && endDate) {
         params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) BETWEEN '${startDate}' AND '${endDate}'`);
       } else if (startDate && !endDate) {
-        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) = '${startDate}'`);
+        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) >= '${startDate}'`);
       } else if (!startDate && endDate) {
-        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) = '${endDate}'`);
+        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) <= '${endDate}'`);
       }
 
       sql = `SELECT coalesce(sum(sales.totalsum), 0) - coalesce(sum(purchases.totalsum), 0) AS earnings, coalesce(to_char(sales.time, 'Mon YY'), to_char(purchases.time, 'Mon YY')) AS date FROM sales FULL OUTER JOIN purchases ON sales.time = purchases.time${params.length > 0 ? ` WHERE ${params.join(" OR ")}` : "" } GROUP BY date ORDER BY date DESC`;
