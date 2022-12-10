@@ -25,7 +25,7 @@ module.exports = function (db) {
   router
     .route("/login")
     .get(async function (req, res) {
-      res.render("./page/login", { info: req.flash(`info`) });
+      res.render("./page/login", { error: req.flash(`error`) });
     })
     .post(async function (req, res) {
       try {
@@ -34,7 +34,7 @@ module.exports = function (db) {
 
         const checkEmail = await db.query(sql, [email]);
         if (checkEmail.rows.length == 0) {
-          req.flash(`info`, `Email tidak terdaftar`);
+          req.flash(`error`, `Email tidak terdaftar`);
           return res.redirect("/login");
         }
 
@@ -43,7 +43,7 @@ module.exports = function (db) {
           checkEmail.rows[0].password
         );
         if (!checkPassword) {
-          req.flash(`info`, `Password Salah!`);
+          req.flash(`error`, `Password Salah!`);
           return res.redirect("/login");
         }
 
@@ -58,7 +58,7 @@ module.exports = function (db) {
   router
     .route("/register")
     .get(async function (req, res) {
-      res.render("./page/register", { info: req.flash(`info`) });
+      res.render("./page/register", { error: req.flash(`error`) });
     })
     .post(async function (req, res) {
       try {
@@ -71,7 +71,7 @@ module.exports = function (db) {
         const checkData = await db.query(sql, [email]);
         console.log(checkData.rows);
         if (checkData.rowCount > 0) {
-          req.flash(`info`, `Email sudah terdaftar`);
+          req.flash(`error`, `Email sudah terdaftar`);
           return res.redirect("/register");
         }
 

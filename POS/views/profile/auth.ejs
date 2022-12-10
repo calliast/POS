@@ -4,50 +4,65 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
-    <!-- Page Heading -->
-        <h1 class="h3 mb-2 text-gray-800">Customers</h1>
+  <% if (error.length > 0) { %>
+    <div class="btn btn-user btn-block alert alert-danger" role="alert"><%= error %></div>
+    <% } %>
 
-  <div id="customers-section" class="card shadow mb-4">
+    <% if (success.length > 0) { %>
+      <div class="btn btn-user btn-block alert alert-success" role="alert"><%= success %></div>
+      <% } %>
+
+    <!-- Page Heading -->
+        <h1 class="h3 mb-2 text-gray-800">Change Password</h1>
+
+  <div id="auth-section" class="card shadow mb-4">
     <div class="card-header py-3">
-      <h6 id="customers-form-title" class="m-0 font-weight-bold text-primary">
-        Form edit
+      <h6 id="auth-form-title" class="m-0 font-weight-bold text-primary">
+        Change Your Password
       </h6>
     </div>
     <div class="card-body">
-      <form id="customers-form" action="/customers/edit/<%= data[0].customerid %>" method="POST">
+      <form id="auth-form" action="/profile/auth/<%= user.userid %>" method="PUT">
         <div class="form-group row">
-          <label for="name" class="col-sm-2 col-form-label">Name</label>
+          <label for="old-password" class="col-sm-2 col-form-label">Old Password</label>
           <div class="col-sm-10">
           <input
-              name="name"
+              name="oldPassword"
               type="text"
               class="form-control"
-              id="name"
-              placeholder="Name"
-              value="<%= data[0].name %>"
+              id="old-password"
+              placeholder="Old Password"
+              value=""
               required
             />
           </div>
         </div>
         <div class="form-group row">
-          <label for="address" class="col-sm-2 col-form-label">Address</label>
-          <div class="col-sm-10">
-            <textarea name="address" class="form-control" id="address" rows="3" required><%= data[0].address %>
-            </textarea>
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="phone" class="col-sm-2 col-form-label"
-            >Phone</label
+          <label for="new-password" class="col-sm-2 col-form-label"
+            >New Password</label
           >
           <div class="col-sm-10">
             <input
-              name="phone"
+              name="newPassword"
+              id="new-password"
               type="text"
               class="form-control"
-              id="phone"
-              placeholder="Phone Number"
-              value="<%= data[0].phone %>"
+              placeholder="Insert new password"
+              required
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="retype-password" class="col-sm-2 col-form-label"
+            >Retype Password</label
+          >
+          <div class="col-sm-10">
+            <input
+              name="retypePassword"
+              id="retype-password"
+              type="text"
+              class="form-control"
+              placeholder="Retype your new password"
               required
             />
           </div>
@@ -57,28 +72,19 @@
     <div class="card-footer">
       <button
         id="save-btn"
-        form="customers-form"
+        form="auth-form"
         type="submit"
         class="btn btn-success btn-icon-split"
       >
         <span class="icon text-white-50">
           <i class="fas fa-database"></i>
         </span>
-        <span class="text">Save</span>
+        <span class="text">Update</span>
       </button>
-      <a
-        href="/customers"
-        class="btn btn-warning btn-icon-split"
-        id="back-btn"
-      >
-        <span class="icon text-white-50">
-          <i class="fas fa-undo"></i>
-        </span>
-        <span class="text">Back</span>
-      </a>
     </div>
   </div>
 </div>
 </div>
+
 <!-- End of Main Content -->
 <%- include('../layouts/footer') %> 
