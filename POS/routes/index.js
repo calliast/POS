@@ -69,7 +69,6 @@ module.exports = function (db) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const checkData = await db.query(sql, [email]);
-        console.log(checkData.rows);
         if (checkData.rowCount > 0) {
           req.flash(`error`, `Email sudah terdaftar`);
           return res.redirect("/register");

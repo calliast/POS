@@ -22,13 +22,13 @@
       </h6>
     </div>
     <div class="card-body">
-      <form id="auth-form" action="/profile/auth/<%= user.userid %>" method="PUT">
+      <form id="auth-form" action="/profile/auth/<%= user.userid %>" method="POST">
         <div class="form-group row">
           <label for="old-password" class="col-sm-2 col-form-label">Old Password</label>
           <div class="col-sm-10">
           <input
               name="oldPassword"
-              type="text"
+              type="password"
               class="form-control"
               id="old-password"
               placeholder="Old Password"
@@ -45,7 +45,7 @@
             <input
               name="newPassword"
               id="new-password"
-              type="text"
+              type="password"
               class="form-control"
               placeholder="Insert new password"
               required
@@ -60,7 +60,7 @@
             <input
               name="retypePassword"
               id="retype-password"
-              type="text"
+              type="password"
               class="form-control"
               placeholder="Retype your new password"
               required
