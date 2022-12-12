@@ -1,7 +1,6 @@
 var express = require("express");
 var router = express.Router();
-const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
   /* HOMEPAGE - DASHBOARD */
@@ -22,19 +21,29 @@ module.exports = function (db) {
   router.route("/chart").get(isLoggedIn, async function (req, res) {
     try {
       let params = [];
-      const {startDate, endDate} = req.query
+      const { startDate, endDate } = req.query;
 
       if (startDate && endDate) {
-        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) BETWEEN '${startDate}' AND '${endDate}'`);
+        params.push(
+          `coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) BETWEEN '${startDate}' AND '${endDate}'`
+        );
       } else if (startDate && !endDate) {
-        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) >= '${startDate}'`);
+        params.push(
+          `coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) >= '${startDate}'`
+        );
       } else if (!startDate && endDate) {
-        params.push(`coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) <= '${endDate}'`);
+        params.push(
+          `coalesce(to_char(purchases.time, 'YYYY-MM-DD'), to_char(sales.time, 'YYYY-MM-DD')) <= '${endDate}'`
+        );
       }
 
-      sql = `SELECT coalesce(sum(sales.totalsum), 0) - coalesce(sum(purchases.totalsum), 0) AS earnings, coalesce(to_char(sales.time, 'Mon YY'), to_char(purchases.time, 'Mon YY')) AS date FROM sales FULL OUTER JOIN purchases ON sales.time = purchases.time${params.length > 0 ? ` WHERE ${params.join(" OR ")}` : "" } GROUP BY date ORDER BY date DESC`;
+      sql = `SELECT coalesce(sum(sales.totalsum), 0) - coalesce(sum(purchases.totalsum), 0) AS earnings, coalesce(to_char(sales.time, 'Mon YY'), to_char(purchases.time, 'Mon YY')) AS date FROM sales FULL OUTER JOIN purchases ON sales.time = purchases.time${
+        params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
+      } GROUP BY date ORDER BY date DESC`;
 
-      let sql2 = `select sum(case when sales.customer = 1 then 1 else 0 end) as direct, sum(case when sales.customer = 2 then 1 else 0 end) as customer from sales left join customers on customers.customerid = sales.customer left join purchases on purchases.time = sales.time${params.length > 0 ? ` WHERE ${params.join(" OR ")}` : "" }`;
+      let sql2 = `select sum(case when sales.customer = 1 then 1 else 0 end) as direct, sum(case when sales.customer = 2 then 1 else 0 end) as customer from sales left join customers on customers.customerid = sales.customer left join purchases on purchases.time = sales.time${
+        params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
+      }`;
 
       const { rows: chart } = await db.query(sql);
       const { rows: customer } = await db.query(sql2);
@@ -73,7 +82,7 @@ module.exports = function (db) {
 
       const total = await db.query(queryTotal);
       const data = await db.query(queryData);
-      
+
       const response = {
         draw: Number(req.query.draw),
         recordsTotal: total.rows[0].total,

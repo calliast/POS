@@ -1,9 +1,10 @@
 var express = require("express");
 var router = express.Router();
 const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
+  let sql
   /* HOMEPAGE - DASHBOARD */
   router.route("/").get(isLoggedIn, async function (req, res) {
     try {
@@ -29,7 +30,7 @@ module.exports = function (db) {
     })
     .post(async function (req, res) {
       try {
-        let sql = `SELECT * FROM users WHERE email = $1`;
+        sql = `SELECT * FROM users WHERE email = $1`;
         const { email, password } = req.body;
 
         const checkEmail = await db.query(sql, [email]);
@@ -62,7 +63,7 @@ module.exports = function (db) {
     })
     .post(async function (req, res) {
       try {
-        let sql = `SELECT * FROM users where email = $1`;
+        sql = `SELECT * FROM users where email = $1`;
         const { name, email, password } = req.body;
         const role = "admin";
 

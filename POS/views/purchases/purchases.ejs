@@ -20,6 +20,7 @@
             <!-- End of Delete Modal -->
 
             <script>
+                const operatorId = '<%= user.userid %>'
          $(document).ready(function() {
             /*############## MAIN PAGE ##############*/
                 // Read datatable Main Page
@@ -46,16 +47,16 @@
                             {
                                 'data': 'invoice',
                                 'orderable': false,
-                                'render': function(data) {
-                                    return `<a href="/purchases/id/${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></a>`
+                                'render': function(data, row, meta) {
+                                    if (meta.operator == operatorId){
+                                        return `<a href="/purchases/id/${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></a>`
+                                    } else {
+                                        return `<a href="/purchases/id/${data}" class="btn btn-success btn-circle anchor_edit disabled"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove disabled"><i class="fas fa-trash"></i></a>`
+                                    }
                                 }
                             },
                             
                         ],
-                        "footerCallback": function(row, data, start, end, display) {
-                      let api = this.api()
-                      $(api.column(end).footer()).html('Total')
-                    },
                     })
                 
                 // Delete data

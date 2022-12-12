@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const moment = require("moment");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
   let runNum = 1;

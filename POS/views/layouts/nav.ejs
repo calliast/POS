@@ -33,6 +33,7 @@
       <!-- Heading -->
       <div class="sidebar-heading">Master</div>
 
+      <% if (user.role == 'admin') { %>
       <!-- Nav Item - Utilities Collapse Menu -->
       <li class="nav-item">
         <a
@@ -59,7 +60,7 @@
           </div>
         </div>
       </li>
-
+      <% } %> 
       <li class="nav-item">
         <a class="nav-link" href="/suppliers">
           <i class="fas fa-fw fa-link"></i>
@@ -74,12 +75,14 @@
         </a>
       </li>
 
+      <% if (user.role == 'admin') { %>
       <li class="nav-item">
         <a class="nav-link" href="/users">
           <i class="fas fa-fw fa-user"></i>
           <span>Users</span>
         </a>
       </li>
+      <% } %> 
 
       <!-- Divider -->
       <hr class="sidebar-divider" />
@@ -189,6 +192,7 @@
               </div>
             </li>
 
+            <% if (user.role == 'admin') { %>
             <!-- Nav Item - Alerts -->
             <li class="nav-item dropdown no-arrow mx-1">
               <a
@@ -253,6 +257,7 @@
                 >
               </div>
             </li>
+            <% } %> 
 
             <div class="topbar-divider d-none d-sm-block"></div>
 

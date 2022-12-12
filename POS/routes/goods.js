@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const path = require("path");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isAdmin } = require("../helpers/util");
 
 module.exports = function (db) {
   let runNum = 1;
@@ -9,7 +9,7 @@ module.exports = function (db) {
   let response;
 
   /* Goods page Route. */
-  router.route("/").get(isLoggedIn, async function (req, res) {
+  router.route("/").get(isAdmin, async function (req, res) {
     try {
       const getUnit = await db.query(`SELECT * from units`);
 
@@ -27,7 +27,7 @@ module.exports = function (db) {
   /* Add goods Route. */
   router
     .route("/add")
-    .get(isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         const getUnit = await db.query(`SELECT * from units`);
 
@@ -39,7 +39,7 @@ module.exports = function (db) {
         res.json(error);
       }
     })
-    .post(isLoggedIn, async function (req, res) {
+    .post(isAdmin, async function (req, res) {
       try {
         const { barcode, name, stock, purchasePrice, sellingPrice, unit } =
           req.body;
@@ -89,7 +89,7 @@ module.exports = function (db) {
   /* Edit a goods Route. */
   router
     .route("/edit/:barcode")
-    .get(isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         sql = `SELECT * FROM goods WHERE "barcode" = $1`;
 
@@ -114,7 +114,7 @@ module.exports = function (db) {
         res.json(error);
       }
     })
-    .post(isLoggedIn, async function (req, res) {
+    .post(isAdmin, async function (req, res) {
       try {
         let picture;
         let pictureName;
@@ -179,7 +179,7 @@ module.exports = function (db) {
     });
 
   // API - Read all goods - GET METHOD
-  router.route("/data").get(isLoggedIn, async function (req, res) {
+  router.route("/data").get(isAdmin, async function (req, res) {
     try {
       let params = [];
 
@@ -237,7 +237,7 @@ module.exports = function (db) {
   });
 
   // Check if barcode already used - POST METHOD
-  router.route("/data/check").post(isLoggedIn, async function (req, res) {
+  router.route("/data/check").post(isAdmin, async function (req, res) {
     try {
       sql = `SELECT * FROM goods WHERE barcode = $1`;
       const { barcode } = req.body;
@@ -259,7 +259,7 @@ module.exports = function (db) {
   });
 
   // 5. Delete a goods and its data - DELETE METHOD
-  router.route("/data/:barcode").delete(isLoggedIn, async function (req, res) {
+  router.route("/data/:barcode").delete(isAdmin, async function (req, res) {
     try {
       sql = `DELETE FROM goods WHERE "barcode" = $1`;
       const barcode = req.params.barcode;

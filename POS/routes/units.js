@@ -1,7 +1,6 @@
 var express = require("express");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isAdmin } = require("../helpers/util");
 var router = express.Router();
-const helpers = require("../public/javascripts/util");
 
 module.exports = function (db) {
   let runNum = 1;
@@ -10,7 +9,7 @@ module.exports = function (db) {
   /* UNITS Route. */
   router
   .route("/")
-  .get(helpers.isLoggedIn, async function (req, res) {
+  .get(isAdmin, async function (req, res) {
     try {
       res.render("./units/units", { 
         user: req.session.user,
@@ -25,7 +24,7 @@ module.exports = function (db) {
   router
     .route("/data")
     // 1. GET METHOD - Read all units
-    .get(helpers.isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         let params = [];
 
@@ -40,8 +39,6 @@ module.exports = function (db) {
         const sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        console.log({ queryUnits: req.query });
-
         let queryTotal = `SELECT count(*) as TOTAL FROM units${
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         }`;
@@ -49,25 +46,8 @@ module.exports = function (db) {
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
-        console.log({
-          sqlQuery: {
-            queryTotal,
-            queryData
-          }
-        });
-
         const total = await db.query(queryTotal);
         const data = await db.query(queryData);
-
-        console.log({
-          "Percobaan ke": runNum,
-          limit,
-          offset,
-          sortBy,
-          sortMode,
-          hasil: total.rows,
-          data: data.rows,
-        });
 
         const response = {
           draw: Number(req.query.draw),
@@ -84,7 +64,7 @@ module.exports = function (db) {
       }
     })
     // 2. POST METHOD - Add a new unit
-    .post(helpers.isLoggedIn, async function (req, res) {
+    .post(isAdmin, async function (req, res) {
       try {
         const { unitNew, name, note } = req.body;
 
@@ -104,7 +84,7 @@ module.exports = function (db) {
     });
 
     // Check if unit already exist
-    router.route('/data/check').post(isLoggedIn, async function(req,res) {
+    router.route('/data/check').post(async function(req,res) {
       try {
         sql = `SELECT * FROM units WHERE unit = $1`;
         const { unit } = req.body;
@@ -129,7 +109,7 @@ module.exports = function (db) {
     router
     .route("/data/:unit")
     // GET METHOD - Pull user's data to the edit page
-    .get(helpers.isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         sql = `SELECT * FROM units WHERE "unit" = $1`;
         const unit = req.params.unit
@@ -140,7 +120,7 @@ module.exports = function (db) {
       }
     })
     // PUT METHOD - Update edited user data
-    .put(helpers.isLoggedIn, async function (req, res) {
+    .put(isAdmin, async function (req, res) {
       try {
         const { unitUpd, name, note } = req.body
         console.log(`masuk route update`);
@@ -151,21 +131,17 @@ module.exports = function (db) {
           req.params.unit,
         ];
 
-        console.log(response);
-        
         sql =
         `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4`;
         const getData = await db.query(sql, response);
 
-        console.log('hasil update', getData);
-        
         res.json(getData);
       } catch (error) {
         res.json(error);
       }
     })
     // 3. DELETE METHOD - Delete a user and its data
-    .delete(helpers.isLoggedIn, async function (req, res) {
+    .delete(isAdmin, async function (req, res) {
       try {
         sql = `DELETE FROM units WHERE "unit" = $1`;
         const unit = req.params.unit

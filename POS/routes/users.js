@@ -1,14 +1,14 @@
 var express = require("express");
 var router = express.Router();
-const bcrypt = require('bcrypt')
-const helpers = require("../public/javascripts/util");
+const bcrypt = require("bcrypt");
+const { isAdmin } = require("../helpers/util");
 
 module.exports = function (db) {
   let runNum = 1;
   let sql = ``;
 
   /* USERS Route. */
-  router.route("/").get(helpers.isLoggedIn, async function (req, res) {
+  router.route("/").get(isAdmin, async function (req, res) {
     try {
       res.render("./users/users", {
         user: req.session.user,
@@ -23,7 +23,7 @@ module.exports = function (db) {
   router
     .route("/data")
     // 1. GET METHOD - Read all users
-    .get(helpers.isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         let params = [];
 
@@ -81,7 +81,7 @@ module.exports = function (db) {
       }
     })
     // 2. POST METHOD - Add a new user
-    .post(helpers.isLoggedIn, async function (req, res) {
+    .post(isAdmin, async function (req, res) {
       try {
         sql = `SELECT * FROM users where email = $1`;
         const { name, email, password, role, checkTag } = req.body;
@@ -123,7 +123,7 @@ module.exports = function (db) {
   router
     .route("/data/:userid")
     // GET METHOD - Pull user`s data to the edit page
-    .get(helpers.isLoggedIn, async function (req, res) {
+    .get(isAdmin, async function (req, res) {
       try {
         sql = `SELECT * FROM users WHERE "userid" = $1`;
         const userid = parseInt(req.params.userid);
@@ -135,7 +135,7 @@ module.exports = function (db) {
       }
     })
     // PUT METHOD - Update edited user data
-    .put(helpers.isLoggedIn, async function (req, res) {
+    .put(isAdmin, async function (req, res) {
       try {
         const response = [
           req.body.email,
@@ -154,7 +154,7 @@ module.exports = function (db) {
       }
     })
     // 3. DELETE METHOD - Delete a user and its data
-    .delete(helpers.isLoggedIn, async function (req, res) {
+    .delete(isAdmin, async function (req, res) {
       try {
         sql = `DELETE FROM users WHERE "userid" = $1`;
         const userid = parseInt(req.params.userid);

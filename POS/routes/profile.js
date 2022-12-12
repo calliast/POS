@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../public/javascripts/util");
+const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
   let sql;
@@ -73,8 +73,8 @@ module.exports = function (db) {
         const { rows: updatedUser } = await db.query(sql, [id]);
 
         if (!updatedUser) {
-          req.flash("error", "Fail to update");
-          return res.redirect(`/profile/auth/${id}`);
+          req.flash("error", "Fail when trying to renew session");
+          return res.redirect(`/logout`);
         }
 
         req.session.user = updatedUser[0];
