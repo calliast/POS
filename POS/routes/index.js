@@ -49,6 +49,11 @@ module.exports = function (db) {
         }
 
         req.session.user = checkEmail.rows[0];
+
+        if (req.session.user.role == 'operator') {
+          return res.redirect('/sales')
+        }
+
         res.redirect("/");
       } catch (error) {
         res.send(error);

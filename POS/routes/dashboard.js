@@ -1,10 +1,10 @@
 var express = require("express");
 var router = express.Router();
-const { isLoggedIn } = require("../helpers/util");
+const { isAdmin } = require("../helpers/util");
 
 module.exports = function (db) {
   /* HOMEPAGE - DASHBOARD */
-  router.route("/").get(isLoggedIn, async function (req, res) {
+  router.route("/").get(isAdmin, async function (req, res) {
     let sql;
     try {
       sql = `SELECT COUNT(*) AS timessales, SUM(totalsum) AS totalsales, (SELECT SUM(totalsum) FROM purchases) AS totalpurchases, SUM(totalsum) - (SELECT SUM(totalsum) FROM purchases) AS earnings FROM sales`;
@@ -18,7 +18,7 @@ module.exports = function (db) {
     }
   });
 
-  router.route("/chart").get(isLoggedIn, async function (req, res) {
+  router.route("/chart").get(isAdmin, async function (req, res) {
     try {
       let params = [];
       const { startDate, endDate } = req.query;
@@ -57,7 +57,7 @@ module.exports = function (db) {
     }
   });
 
-  router.route("/table").get(isLoggedIn, async function (req, res) {
+  router.route("/table").get(isAdmin, async function (req, res) {
     try {
       let params = [];
 
