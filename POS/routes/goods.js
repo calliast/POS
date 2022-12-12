@@ -13,7 +13,6 @@ module.exports = function (db) {
     try {
       const getUnit = await db.query(`SELECT * from units`);
 
-      console.log(getUnit);
       res.render("./goods/goods", {
         user: req.session.user,
         unit: getUnit.rows,
@@ -95,15 +94,8 @@ module.exports = function (db) {
 
         const { barcode } = req.params;
 
-        console.log(barcode);
-        console.log(sql);
         const selectData = await db.query(sql, [barcode]);
         const getUnit = await db.query(`SELECT * from units`);
-
-        console.log({
-          selectData,
-          getUnit,
-        });
 
         res.render("./goods/edit", {
           user: req.session.user,
@@ -193,8 +185,6 @@ module.exports = function (db) {
       const sortBy = req.query.columns[req.query.order[0].column].data;
       const sortMode = req.query.order[0].dir;
 
-      console.log({ queryGoods: req.query });
-
       let queryTotal = `SELECT count(*) as TOTAL FROM goods${
         params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
       }`;
@@ -202,25 +192,8 @@ module.exports = function (db) {
         params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
       } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
-      console.log({
-        sqlQuery: {
-          queryTotal,
-          queryData,
-        },
-      });
-
       const total = await db.query(queryTotal);
       const data = await db.query(queryData);
-
-      console.log({
-        "Percobaan ke": runNum,
-        limit,
-        offset,
-        sortBy,
-        sortMode,
-        hasil: total.rows,
-        data: data.rows,
-      });
 
       const response = {
         draw: Number(req.query.draw),
@@ -237,26 +210,41 @@ module.exports = function (db) {
   });
 
   // Check if barcode already used - POST METHOD
-  router.route("/data/check").post(isAdmin, async function (req, res) {
-    try {
-      sql = `SELECT * FROM goods WHERE barcode = $1`;
-      const { barcode } = req.body;
+  router
+    .route("/data/check")
+    .post(isAdmin, async function (req, res) {
+      try {
+        sql = `SELECT * FROM goods WHERE barcode = $1`;
+        const { barcode } = req.body;
 
-      const barcodeCheck = await db.query(sql, [barcode]);
+        const barcodeCheck = await db.query(sql, [barcode]);
 
-      if (barcodeCheck.rowCount) {
-        return res.json({
-          data: null,
+        if (barcodeCheck.rowCount) {
+          return res.json({
+            data: null,
+          });
+        }
+
+        res.json({
+          data: barcodeCheck.rows,
         });
+      } catch (error) {
+        res.json;
       }
+    })
+    .get(isAdmin, async function (req, res) {
+      try {
+        sql = `SELECT barcode, name, stock FROM goods where stock <= 5`;
 
-      res.json({
-        data: barcodeCheck.rows,
-      });
-    } catch (error) {
-      res.json;
-    }
-  });
+        const { rows: getAlertData } = await db.query(sql);
+
+        res.json({
+          data: getAlertData
+        })
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
   // 5. Delete a goods and its data - DELETE METHOD
   router.route("/data/:barcode").delete(isAdmin, async function (req, res) {

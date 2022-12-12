@@ -145,7 +145,6 @@
   <script>
       $("document").ready(function () {
         const noInvoice = $('#invoice').val()
-        console.log(noInvoice);
 
      // Read datatable Main Page
                 $('#dataInvoice').DataTable({
@@ -226,7 +225,7 @@
             
     /*############## API ##############*/
 
-                // add item list
+                // add item into list
                 const addItem = (invoice, itemcode, quantity) => {
                     $.post(`http://localhost:3023/purchases/invoice`, { invoice, itemcode, quantity })
                         .done(function (response) {
@@ -236,6 +235,9 @@
                         // Reload table
                         $('#dataInvoice').DataTable().clear().ajax.reload();
                         updateSum()
+                        setTimeout(()=> {
+                            updateAlert()
+                        }, 2000)
                         })
                         .fail(function (err) {
                         console.log(err);
@@ -251,9 +253,12 @@
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
-
+                                                
                         $('#dataInvoice').DataTable().clear().ajax.reload()
                         updateSum()
+                        setTimeout(()=> {
+                            updateAlert()
+                        }, 2000)
                     }).fail(function(error) {
                         alert('gagal bro')
                     })

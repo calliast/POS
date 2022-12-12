@@ -255,6 +255,9 @@
                         $('#dataInvoice').DataTable().clear().ajax.reload();
 
                         updateSum()
+                        setTimeout(()=> {
+                            updateAlert()
+                        }, 2000)
                         })
                         .fail(function (err) {
                         console.log(err);
@@ -275,6 +278,9 @@
                         updateGoods($('#itemcode').val(), true)
                         $('#dataInvoice').DataTable().clear().ajax.reload()
                         updateSum()
+                        setTimeout(()=> {
+                            updateAlert()
+                        }, 2000)
                     }).fail(function(error) {
                         alert('gagal bro')
                     })

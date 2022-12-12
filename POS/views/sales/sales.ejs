@@ -102,10 +102,12 @@
                         url: `http://localhost:3023/sales/id/${invoice}`,
                         dataType: 'json'
                     }).done(function(response) {
-                        console.log(response);
                         $('#deleteModal').modal('toggle')
-
+                        
                         $('#saleList').DataTable().clear().ajax.reload()
+                        setTimeout(()=> {
+                            updateAlert()
+                        }, 2000)
                     }).fail(function(error) {
                         alert('gagal bro')
                     })
