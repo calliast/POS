@@ -336,6 +336,7 @@ $('document').ready(function() {
                         $('#display-sales').html(currencyFormatter.format(response.stats.totalsales))
                         $('#display-earnings').html(currencyFormatter.format(response.stats.earnings))
                     }).fail(function(error) {
+                        console.log('error chart waktu read data stats bar', error);
                         alert('gagal bro chartnya')
                     })
         }
@@ -495,7 +496,7 @@ $('document').ready(function() {
             chartDoughnut.update()
         }
       }).fail(function(error) {
-        console.log(error);
+        console.log('error waktu read charts', error);
         alert("Failed to read data");
       })
     }
