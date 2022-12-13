@@ -6,6 +6,7 @@ var logger = require("morgan");
 var session = require("express-session")
 var flash = require('connect-flash')
 var fileUpload = require('express-fileupload')
+var cors = require('cors')
 
 async function main() {
   try {
@@ -58,6 +59,7 @@ main().then((db) => {
     saveUninitialized: true,
     // cookie: { secure: true }
   }))
+  app.use(cors())
   app.use(flash())
 
   app.use("/", indexRouter);
