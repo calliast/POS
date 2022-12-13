@@ -38,6 +38,7 @@ main().then((db) => {
   var salesRouter = require("./routes/sales")(db);
   var dashboardRouter = require("./routes/dashboard")(db);
   var profileRouter = require("./routes/profile")(db);
+  var alertRouter = require("./routes/alert")(db);
 
   var app = express();
 
@@ -69,6 +70,7 @@ main().then((db) => {
   app.use("/sales", salesRouter);
   app.use("/main", dashboardRouter);
   app.use("/profile", profileRouter);
+  app.use("/alert", alertRouter);
 
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {

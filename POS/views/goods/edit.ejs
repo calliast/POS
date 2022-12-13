@@ -159,17 +159,6 @@
     const a = '<%- data[0].picture %>'
 
     $("document").ready(function () {
-      // Submit-event
-      // $('#goods-form').submit(function() {
-      //   const barcode = $('#barcode').val()
-      //   const name = $('#barcode').val()
-      //   const stock = $('#barcode').val()
-      //   const unit = $('#barcode').val()
-      //   const purchaseprice = $('#barcode').val()
-      //   const sellingprice = $('#barcode').val()
-      //   const picture = $('#barcode').val()
-      //   console.log();
-      // })
 
       // Preview-Event
       $('#picture').change(function(event) {
@@ -182,44 +171,6 @@
         }
       })
 
-      // barcode-Event - Check if barcode already exists
-      // $("#barcode").change(function () {
-      //   const barcode = $(this).val();
-
-      //   if (barcode === $("#barcode").prop("data-id")) {
-      //     $("input#barcode").removeClass("is-invalid").addClass("is-valid");
-      //     $("#barcode-valid").html("Barcode remain unchanged.");
-      //   } else if (barcode) {
-      //     barcodeCheck(barcode, $(this).prop("data-id"));
-      //   } else {
-      //     $("input#barcode").removeClass("is-valid").addClass("is-invalid");
-      //     $("#barcode-invalid").html("Barcode is required.");
-      //   }
-      // });
-
-      // const barcodeCheck = (barcode, checkTag) => {
-      //   $.ajax({
-      //     method: "POST",
-      //     url: `http://localhost:3023/goods/data`,
-      //     dataType: "json",
-      //     data: {
-      //       barcode,
-      //       checkTag,
-      //     },
-      //   })
-      //     .done(function (response) {
-      //       console.log(response);
-      //       if (response.data) {
-      //         $("input#barcode").removeClass("is-invalid").addClass("is-valid");
-      //       } else {
-      //         $("input#barcode").removeClass("is-valid").addClass("is-invalid");
-      //         $("#barcode-invalid").html("Barcode already used.");
-      //       }
-      //     })
-      //     .fail(function (error) {
-      //       alert("gagal bro");
-      //     });
-      // };
     });
   </script>
 
