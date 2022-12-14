@@ -4,40 +4,43 @@ const path = require("path");
 const { isAdmin } = require("../helpers/util");
 
 module.exports = function (db) {
-  let runNum = 1;
   let sql;
   let response;
 
-  /* Goods page Route. */
-  router.route("/").get(isAdmin, async function (req, res) {
-    try {
-      const getUnit = await db.query(`SELECT * from units`);
-
-      res.render("./goods/goods", {
-        user: req.session.user,
-        unit: getUnit.rows,
-        info: req.flash(`info`),
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  });
-
-  /* Add goods Route. */
   router
-    .route("/add")
+    .route("/")
+    // Route to goods page
     .get(isAdmin, async function (req, res) {
       try {
-        const getUnit = await db.query(`SELECT * from units`);
+        res.render("./goods/goods", {
+          user: req.session.user,
+          info: req.flash(`info`),
+          active: `goods`,
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
+  router
+    .route("/add")
+    // Render add goods page
+    .get(isAdmin, async function (req, res) {
+      try {
+        const { rows: getUnit } = await db.query(
+          `SELECT * from units ORDER BY "unit" ASC`
+        );
 
         res.render("./goods/add", {
           user: req.session.user,
-          unit: getUnit.rows,
+          unit: getUnit,
+          active: `goods/add`,
         });
       } catch (error) {
         res.json(error);
       }
     })
+    // Save the newly added goods
     .post(isAdmin, async function (req, res) {
       try {
         const { barcode, name, stock, purchasePrice, sellingPrice, unit } =
@@ -74,8 +77,6 @@ module.exports = function (db) {
           pictureName,
         ];
 
-        console.log({ response });
-
         await db.query(sql, response);
         await picture.mv(uploadPath);
 
@@ -85,27 +86,88 @@ module.exports = function (db) {
       }
     });
 
-  /* Edit a goods Route. */
   router
-    .route("/edit/:barcode")
+    .route("/data")
+    // Populate goods table
+    .get(isAdmin, async function (req, res) {
+      try {
+        let params = [];
+
+        if (req.query.search.value) {
+          params.push(`barcode LIKE '%${req.query.search.value}%'`);
+          params.push(`name ILIKE '%${req.query.search.value}%'`);
+        }
+
+        const limit = req.query.length;
+        const offset = req.query.start;
+        const sortBy = req.query.columns[req.query.order[0].column].data;
+        const sortMode = req.query.order[0].dir;
+
+        let queryTotal = `SELECT count(*) as TOTAL FROM goods${
+          params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
+        }`;
+        let queryData = `SELECT * FROM goods${
+          params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
+        } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
+
+        const total = await db.query(queryTotal);
+        const data = await db.query(queryData);
+
+        const response = {
+          draw: Number(req.query.draw),
+          recordsTotal: total.rows[0].total,
+          recordsFiltered: total.rows[0].total,
+          data: data.rows,
+        };
+
+        res.json(response);
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
+  router
+    .route("/data/check")
+    // Notification - check for goods low in stock
+    .get(isAdmin, async function (req, res) {
+      try {
+        sql = `SELECT barcode, name, stock FROM goods where stock <= 5`;
+
+        const { rows: getAlertData } = await db.query(sql);
+
+        res.json({
+          data: getAlertData,
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
+  router
+    .route("/data/:barcode")
+    // Render edit goods page
     .get(isAdmin, async function (req, res) {
       try {
         sql = `SELECT * FROM goods WHERE "barcode" = $1`;
 
         const { barcode } = req.params;
 
-        const selectData = await db.query(sql, [barcode]);
-        const getUnit = await db.query(`SELECT * from units`);
+        const { rows: findGoods } = await db.query(sql, [barcode]);
+        const { rows: getUnits } = await db.query(
+          `SELECT * from units ORDER BY "unit" ASC`
+        );
 
         res.render("./goods/edit", {
           user: req.session.user,
-          data: selectData.rows,
-          unit: getUnit.rows,
+          data: findGoods,
+          unit: getUnits,
+          active: `goods/edit`,
         });
       } catch (error) {
         res.json(error);
       }
     })
+    // Save updated goods
     .post(isAdmin, async function (req, res) {
       try {
         let picture;
@@ -168,98 +230,18 @@ module.exports = function (db) {
       } catch (error) {
         res.json(error);
       }
-    });
-
-  // API - Read all goods - GET METHOD
-  router.route("/data").get(isAdmin, async function (req, res) {
-    try {
-      let params = [];
-
-      if (req.query.search.value) {
-        params.push(`barcode LIKE '%${req.query.search.value}%'`);
-        params.push(`name ILIKE '%${req.query.search.value}%'`);
-      }
-
-      const limit = req.query.length;
-      const offset = req.query.start;
-      const sortBy = req.query.columns[req.query.order[0].column].data;
-      const sortMode = req.query.order[0].dir;
-
-      let queryTotal = `SELECT count(*) as TOTAL FROM goods${
-        params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
-      }`;
-      let queryData = `SELECT * FROM goods${
-        params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
-      } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
-
-      const total = await db.query(queryTotal);
-      const data = await db.query(queryData);
-
-      const response = {
-        draw: Number(req.query.draw),
-        recordsTotal: total.rows[0].total,
-        recordsFiltered: total.rows[0].total,
-        data: data.rows,
-      };
-
-      runNum++;
-      res.json(response);
-    } catch (error) {
-      res.json(error);
-    }
-  });
-
-  // Check if barcode already used - POST METHOD
-  router
-    .route("/data/check")
-    .post(isAdmin, async function (req, res) {
-      try {
-        sql = `SELECT * FROM goods WHERE barcode = $1`;
-        const { barcode } = req.body;
-
-        const barcodeCheck = await db.query(sql, [barcode]);
-
-        if (barcodeCheck.rowCount) {
-          return res.json({
-            data: null,
-          });
-        }
-
-        res.json({
-          data: barcodeCheck.rows,
-        });
-      } catch (error) {
-        res.json;
-      }
     })
-    .get(isAdmin, async function (req, res) {
+    // 5. Delete a goods
+    .delete(isAdmin, async function (req, res) {
       try {
-        sql = `SELECT barcode, name, stock FROM goods where stock <= 5`;
-
-        const { rows: getAlertData } = await db.query(sql);
-
-        res.json({
-          data: getAlertData
-        })
+        sql = `DELETE FROM goods WHERE "barcode" = $1`;
+        const barcode = req.params.barcode;
+        const deleteData = await db.query(sql, [barcode]);
+        res.json(deleteData);
       } catch (error) {
         res.json(error);
       }
     });
-
-  // 5. Delete a goods and its data - DELETE METHOD
-  router.route("/data/:barcode").delete(isAdmin, async function (req, res) {
-    try {
-      sql = `DELETE FROM goods WHERE "barcode" = $1`;
-      const barcode = req.params.barcode;
-      console.log("ini route delete", sql, barcode);
-      const deleteData = await db.query(sql, [barcode]);
-      res.json(deleteData);
-    } catch (error) {
-      res.json(error);
-    }
-  });
-
-  runNum++;
 
   return router;
 };

@@ -11,6 +11,7 @@ module.exports = function (db) {
       // let sql = `SELECT "userid", "email", "name", "password", "role" FROM users ORDER BY "userid" ASC`;
       res.render("./page/index", {
         user: req.session.user,
+        active: `dashboard`,
       });
     } catch (error) {
       res.send("error");
@@ -35,7 +36,7 @@ module.exports = function (db) {
 
         const checkEmail = await db.query(sql, [email]);
         if (checkEmail.rows.length == 0) {
-          req.flash(`error`, `Email tidak terdaftar`);
+          req.flash(`error`, `Email not registered!`);
           return res.redirect("/login");
         }
 
@@ -44,7 +45,7 @@ module.exports = function (db) {
           checkEmail.rows[0].password
         );
         if (!checkPassword) {
-          req.flash(`error`, `Password Salah!`);
+          req.flash(`error`, `Wrong password!`);
           return res.redirect("/login");
         }
 
@@ -76,7 +77,7 @@ module.exports = function (db) {
         const hashedPassword = await bcrypt.hash(password, salt);
         const checkData = await db.query(sql, [email]);
         if (checkData.rowCount > 0) {
-          req.flash(`error`, `Email sudah terdaftar`);
+          req.flash(`error`, `Email already registered`);
           return res.redirect("/register");
         }
 

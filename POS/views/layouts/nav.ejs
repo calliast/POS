@@ -21,7 +21,7 @@
 
       <% if (user.role == 'admin') {%>
       <!-- Nav Item - Dashboard -->
-      <li class="nav-item active">
+      <li class="nav-item <%= active === `dashboard` ? `active`: `` %>">
         <a class="nav-link" href="/">
           <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span></a
@@ -55,7 +55,7 @@
           aria-labelledby="headingUtilities"
           data-parent="#accordionSidebar"
         >
-          <div class="bg-white py-2 collapse-inner rounded">
+          <div class="bg-white py-2 collapse-inner rounded ">
             <h6 class="collapse-header">Goods Utilities:</h6>
             <a class="collapse-item" href="/goods">Goods</a>
             <a class="collapse-item" href="/units">Units</a>
@@ -63,14 +63,14 @@
         </div>
       </li>
       <% } %> 
-      <li class="nav-item">
+      <li class="nav-item <%= active === `suppliers` ? `active`: `` %>">
         <a class="nav-link" href="/suppliers">
           <i class="fas fa-fw fa-link"></i>
           <span>Suppliers</span>
         </a>
       </li>
 
-      <li class="nav-item">
+      <li class="nav-item <%= active === `customers` ? `active`: `` %>">
         <a class="nav-link" href="/customers">
           <i class="fas fa-fw fa-users"></i>
           <span>Customers</span>
@@ -78,7 +78,7 @@
       </li>
 
       <% if (user.role == 'admin') { %>
-      <li class="nav-item">
+      <li class="nav-item <%= active === `users` ? `active`: `` %>">
         <a class="nav-link" href="/users">
           <i class="fas fa-fw fa-user"></i>
           <span>Users</span>
@@ -93,7 +93,7 @@
       <div class="sidebar-heading">Transactions</div>
 
       <!-- Nav Item - Charts -->
-      <li class="nav-item">
+      <li class="nav-item <%= active === `sales` ? `active`: `` %>">
         <a class="nav-link" href="/sales">
           <i class="fas fa-fw fa-chart-area"></i>
           <span>Sales</span></a
@@ -101,7 +101,7 @@
       </li>
 
       <!-- Nav Item - Tables -->
-      <li class="nav-item">
+      <li class="nav-item <%= active === `purchases` ? `active`: `` %>">
         <a class="nav-link" href="/purchases">
           <i class="fas fa-fw fa-table"></i>
           <span>Purchases</span></a

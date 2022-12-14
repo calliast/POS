@@ -3,101 +3,55 @@ var router = express.Router();
 const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
-  let runNum = 1;
-  let sql = ``;
+  let sql;
 
-  /* Suppliers page route */
-  router.route("/").get(isLoggedIn, async function (req, res) {
+  router
+  .route("/")
+  // 1. Render suppliers page
+  .get(isLoggedIn, async function (req, res) {
     try {
       res.render("./suppliers/suppliers", {
         user: req.session.user,
         info: req.flash(`info`),
+        active: `suppliers`
       });
     } catch (error) {
       res.json(error);
     }
   });
 
-  /* Add goods route */
-  // Add Page
-  router.route("/add").get(isLoggedIn, async function (req, res) {
-    try {
-      res.render("./suppliers/add", {
-        user: req.session.user,
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  // Adding data
-  }).post(isLoggedIn, async function (req, res) {
-    try {
-      const {
-        name,
-        address,
-        phone
-      } = req.body
-
-      // /* Driver code to add data */
-      sql = `INSERT INTO suppliers("name", "address", "phone") VALUES($1,$2,$3)`
-
-      const response = [
-        name,
-        address,
-        phone
-      ];
-
-      console.log({response});
-
-      await db.query(sql, response)
-
-      res.redirect('/suppliers')
-    } catch (error) {
-      res.json(error)
-    }
-  })
-
-  /* Edit a supplier route. */
   router
-    .route("/edit/:supplierid")
+    .route("/add")
+    // 2. Render add supplier page
     .get(isLoggedIn, async function (req, res) {
       try {
-        sql = `SELECT * FROM suppliers WHERE "supplierid" = $1`;
-
-        const { supplierid } = req.params;
-
-        const selectData = await db.query(sql, [supplierid]);
-
-        res.render("./suppliers/edit", {
+        res.render("./suppliers/add", {
           user: req.session.user,
-          data: selectData.rows,
+          active: `suppliers/add`
         });
       } catch (error) {
         res.json(error);
       }
     })
+    // 3. Add a supplier (CREATE)
     .post(isLoggedIn, async function (req, res) {
       try {
-        // /* Driver code to update data */
-        sql = `UPDATE suppliers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "supplierid" = $4`;
-
         const { name, address, phone } = req.body;
 
-        const response = [
-          name, address.trim(), phone, req.params.supplierid
-        ];
+        // /* Driver code to add data */
+        sql = `INSERT INTO suppliers("name", "address", "phone") VALUES($1,$2,$3)`;
 
-        console.log({response});
-        await db.query(sql, response)
+        await db.query(sql, [name, address, phone]);
 
-        res.redirect('/suppliers')
+        res.redirect("/suppliers");
       } catch (error) {
         res.json(error);
       }
     });
 
-  // API - Read all suppliers - GET METHOD
   router
     .route("/data")
+    // 4. Populate datatable (READ, BROWSE)
     .get(isLoggedIn, async function (req, res) {
       try {
         let params = [];
@@ -120,39 +74,74 @@ module.exports = function (db) {
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
-        const total = await db.query(queryTotal);
-        const data = await db.query(queryData);
+        const { rows: total } = await db.query(queryTotal);
+        const { rows: data } = await db.query(queryData);
 
         const response = {
           draw: Number(req.query.draw),
-          recordsTotal: total.rows[0].total,
-          recordsFiltered: total.rows[0].total,
-          data: data.rows,
+          recordsTotal: total[0].total,
+          recordsFiltered: total[0].total,
+          data: data,
         };
 
-        runNum++;
         res.json(response);
-      } catch (error) {
-        res.json(error);
-      }
-    })
-
-  // 5. Delete a supplier and its data - DELETE METHOD
-  router
-    .route("/data/:supplierid")
-    .delete(isLoggedIn, async function (req, res) {
-      try {
-        sql = `DELETE FROM suppliers WHERE "supplierid" = $1`;
-        const supplierid = req.params.supplierid;
-        console.log("ini route delete", sql, supplierid);
-        const deleteData = await db.query(sql, [supplierid]);
-        res.json(deleteData);
       } catch (error) {
         res.json(error);
       }
     });
 
-  runNum++;
+  router
+    .route("/data/:supplierid")
+    // 4. Render edit page
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        sql = `SELECT * FROM suppliers WHERE "supplierid" = $1`;
+
+        const { supplierid } = req.params;
+
+        const { rows: getSuppliersData } = await db.query(sql, [supplierid]);
+
+        res.render("./suppliers/edit", {
+          user: req.session.user,
+          data: getSuppliersData,
+          active: `suppliers/edit`
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // 5. Update supplier (UPDATE)
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        // /* Driver code to update data */
+        sql = `UPDATE suppliers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "supplierid" = $4`;
+
+        const { name, address, phone } = req.body;
+        await db.query(sql, [
+          name,
+          address.trim(),
+          phone,
+          req.params.supplierid,
+        ]);
+
+        res.redirect("/suppliers");
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // 5. Delete a supplier (DELETE)
+    .delete(isLoggedIn, async function (req, res) {
+      try {
+        const supplierid = req.params.supplierid;
+
+        sql = `DELETE FROM suppliers WHERE "supplierid" = $1`;
+        const { rows: deleteASupplier } = await db.query(sql, [supplierid]);
+
+        res.json(deleteASupplier);
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
   return router;
 };

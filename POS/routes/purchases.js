@@ -13,6 +13,7 @@ module.exports = function (db) {
       res.render("./purchases/purchases", {
         user: req.session.user,
         info: req.flash(`info`),
+        active: `purchases`,
       });
     } catch (error) {
       res.json(error);
@@ -141,6 +142,7 @@ module.exports = function (db) {
           supplier: getSupplier.rows,
           info: req.flash(`info`),
           setDate: moment,
+          active: `purchases/invoice`
         });
       } catch (error) {
         res.json(error);

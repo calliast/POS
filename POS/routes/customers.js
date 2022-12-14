@@ -3,97 +3,55 @@ var router = express.Router();
 const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
-  let runNum = 1;
-  let sql = ``;
+  let sql;
 
-  // Route to customers page
-  router.route("/").get(isLoggedIn, async function (req, res) {
-    try {
-      res.render("./customers/customers", {
-        user: req.session.user,
-        info: req.flash(`info`),
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  });
-
-  // Add Page
-  router.route("/add").get(isLoggedIn, async function (req, res) {
-    try {
-      res.render("./customers/add", {
-        user: req.session.user,
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  // Adding customer method
-  }).post(isLoggedIn, async function (req, res) {
-    try {
-      const {
-        name,
-        address,
-        phone
-      } = req.body
-
-      sql = `INSERT INTO customers("name", "address", "phone") VALUES($1,$2,$3)`
-
-      const response = [
-        name,
-        address,
-        phone
-      ];
-
-      await db.query(sql, response)
-
-      res.redirect('/customers')
-    } catch (error) {
-      res.json(error)
-    }
-  })
-
-  // Edit page
   router
-    .route("/edit/:customerid")
+    .route("/")
+    // 1. Render customers page
     .get(isLoggedIn, async function (req, res) {
       try {
-        sql = `SELECT * FROM customers WHERE "customerid" = $1`;
-
-        const { customerid } = req.params;
-
-        const selectData = await db.query(sql, [customerid]);
-
-        res.render("./customers/edit", {
+        res.render("./customers/customers", {
           user: req.session.user,
-          data: selectData.rows,
+          info: req.flash(`info`),
+          active: `customers`
         });
-      } catch (error) {
-        res.json(error);
-      }
-    })
-    // Save updated page
-    .post(isLoggedIn, async function (req, res) {
-      try {
-        sql = `UPDATE customers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "customerid" = $4`;
-
-        const { name, address, phone } = req.body;
-
-        const response = [
-          name, address.trim(), phone, req.params.customerid
-        ];
-
-        console.log({response});
-        await db.query(sql, response)
-
-        res.redirect('/customers')
       } catch (error) {
         res.json(error);
       }
     });
 
-  // API - Read all customers
+  router
+    .route("/add")
+    // 2. Render add page
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        res.render("./customers/add", {
+          user: req.session.user,
+          active: `customers/add`
+        });
+      } catch (error) {
+        res.json(error);
+      }
+      // Adding customer method
+    })
+    // 2. Add new customers
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        const { name, address, phone } = req.body;
+
+        sql = `INSERT INTO customers("name", "address", "phone") VALUES($1,$2,$3)`;
+
+        await db.query(sql, [name, address, phone]);
+
+        res.redirect("/customers");
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
   router
     .route("/data")
+    // 3. Populate datatable
     .get(isLoggedIn, async function (req, res) {
       try {
         let params = [];
@@ -116,26 +74,60 @@ module.exports = function (db) {
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
-        const total = await db.query(queryTotal);
-        const data = await db.query(queryData);
+        const { rows: total } = await db.query(queryTotal);
+        const { rows: data } = await db.query(queryData);
 
         const response = {
           draw: Number(req.query.draw),
-          recordsTotal: total.rows[0].total,
-          recordsFiltered: total.rows[0].total,
-          data: data.rows,
+          recordsTotal: total[0].total,
+          recordsFiltered: total[0].total,
+          data: data,
         };
 
-        runNum++;
         res.json(response);
       } catch (error) {
         res.json(error);
       }
-    })
+    });
 
-  // 5. Delete a customer and its data
   router
     .route("/data/:customerid")
+    // 4. Render edit page
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        sql = `SELECT * FROM customers WHERE "customerid" = $1`;
+
+        const { customerid } = req.params;
+
+        const selectData = await db.query(sql, [customerid]);
+
+        res.render("./customers/edit", {
+          user: req.session.user,
+          data: selectData.rows,
+          active: `customers/edit`
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // 5. Saved updated data
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        sql = `UPDATE customers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "customerid" = $4`;
+
+        const { name, address, phone } = req.body;
+
+        const response = [name, address.trim(), phone, req.params.customerid];
+
+        console.log({ response });
+        await db.query(sql, response);
+
+        res.redirect("/customers");
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // 6. Delete customers data
     .delete(isLoggedIn, async function (req, res) {
       try {
         sql = `DELETE FROM customers WHERE "customerid" = $1`;
@@ -147,8 +139,6 @@ module.exports = function (db) {
         res.json(error);
       }
     });
-
-  runNum++;
 
   return router;
 };

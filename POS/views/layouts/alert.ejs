@@ -35,7 +35,7 @@
   });
 
   const updateAlert = () => {
-    $.get("/alert")
+    $.get("/goods/data/check")
       .done(function (response) {
         let alertsData = `<h6 class="dropdown-header">Alerts Center</h6>`
         let alertsNotif = `<i class="fas fa-bell fa-fw"></i>`
@@ -67,7 +67,7 @@
         }
       })
       .fail(function (err) {
-        console.log(err);
+        console.log('error notification', err);
         alert("something is wrong with notifications!");
       });
   };

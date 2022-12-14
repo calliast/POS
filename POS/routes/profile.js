@@ -15,6 +15,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
+          active: `profile`
         });
       } catch (error) {
         res.json(error);
@@ -97,6 +98,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
+          active: `profile/edit`
         });
       } catch (error) {
         res.send("error");
