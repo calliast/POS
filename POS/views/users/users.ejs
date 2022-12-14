@@ -142,7 +142,7 @@
                 const emailCheck = (email, checkTag) => {
                     $.ajax({
                             method: 'POST',
-                            url: `http://localhost:3023/users/data`,
+                            url: `/users/data`,
                             dataType: 'json',
                             data: {
                                 email,
@@ -176,7 +176,7 @@
                     if (userid) {
                         $.ajax({
                             method: 'PUT',
-                            url: `http://localhost:3023/users/data/${userid}`,
+                            url: `/users/data/${userid}`,
                             dataType: 'json',
                             data: {
                                     email,
@@ -199,7 +199,7 @@
                     } else {
                         $.ajax({
                             method: 'POST',
-                            url: `http://localhost:3023/users/data`,
+                            url: `/users/data`,
                             dataType: 'json',
                             data: {
                                     email,
@@ -224,7 +224,7 @@
                 const deleteData = (id) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/users/data/${id}`,
+                        url: `/users/data/${id}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
@@ -239,7 +239,7 @@
                     console.log(`masuk edit`);
                     $.ajax({
                         method: 'GET',
-                        url: `http://localhost:3023/users/data/${userid}`,
+                        url: `/users/data/${userid}`,
                         dataType: 'json'
                     }).done(function(response) {
                         console.log(response);

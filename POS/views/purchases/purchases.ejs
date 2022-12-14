@@ -84,7 +84,7 @@
                 const deleteData = (invoice) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/purchases/id/${invoice}`,
+                        url: `/purchases/id/${invoice}`,
                         dataType: 'json'
                     }).done(function(response) {
                         console.log(response);

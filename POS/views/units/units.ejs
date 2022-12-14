@@ -142,7 +142,7 @@
                 const unitCheck = (unit) => {
                     $.ajax({
                             method: 'POST',
-                            url: `http://localhost:3023/units/data/check`,
+                            url: `/units/data/check`,
                             dataType: 'json',
                             data: {
                                 unit,
@@ -170,7 +170,7 @@
                         console.log(`masuk save edit`);
                         $.ajax({
                             method: 'PUT',
-                            url: `http://localhost:3023/units/data/${unitNew}`,
+                            url: `/units/data/${unitNew}`,
                             dataType: 'json',
                             data: {
                                     unitUpd,
@@ -198,7 +198,7 @@
                         console.log(`masuk save add`);
                         $.ajax({
                             method: 'POST',
-                            url: `http://localhost:3023/units/data`,
+                            url: `/units/data`,
                             dataType: 'json',
                             data: {
                                     unitNew,
@@ -228,7 +228,7 @@
                 const deleteData = (unit) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/units/data/${unit}`,
+                        url: `/units/data/${unit}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
@@ -242,7 +242,7 @@
                 const editData = (unit) => {
                     $.ajax({
                         method: 'GET',
-                        url: `http://localhost:3023/units/data/${unit}`,
+                        url: `/units/data/${unit}`,
                         dataType: 'json'
                     }).done(function(response) {
                         // Setup form values 

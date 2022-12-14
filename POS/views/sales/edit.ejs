@@ -248,7 +248,7 @@
 
                 // add item list
                 const addItem = (invoice, itemcode, quantity) => {
-                    $.post(`http://localhost:3023/sales/invoice`, { invoice, itemcode, quantity })
+                    $.post(`/sales/invoice`, { invoice, itemcode, quantity })
                         .done(function (response) {
                         // Reload table
                         $('#quantity').val(0)
@@ -269,7 +269,7 @@
                 const deleteData = (id) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/sales/invoice/${id}`,
+                        url: `/sales/invoice/${id}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
@@ -289,7 +289,7 @@
                 // Update totalsum
                 const updateSum = () => {
                     const invoice = $('#invoice').val()
-                    $.post(`http://localhost:3023/sales/id/${invoice}`)
+                    $.post(`/sales/id/${invoice}`)
                     .done(function(response) {
                         $('#totalsum').val(response.totalsum)
                     })
@@ -300,7 +300,7 @@
 
                 // Get Goods
                 const updateGoods = (barcode, stock) => {
-                    $.post(`http://localhost:3023/sales/get-goods/${barcode}`)
+                    $.post(`/sales/get-goods/${barcode}`)
                     .done(function(response) {
                         if (stock) {
                             $('#stock').val(response.stock - $('#quantity').val())

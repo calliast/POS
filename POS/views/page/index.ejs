@@ -329,7 +329,7 @@ $('document').ready(function() {
   const readStats = () => {
             $.ajax({
                         method: 'GET',
-                        url: `http://localhost:3023/main/`,
+                        url: `/main`,
                     }).done(function(response) {
                         $('#display-total-sales').html(response.stats.timessales)
                         $('#display-purchase').html(currencyFormatter.format(response.stats.totalpurchases))
@@ -471,7 +471,7 @@ $('document').ready(function() {
 
       $.ajax({
         method: 'GET',
-        url: 'http://localhost:3023/main/chart',
+        url: '/main/chart',
         data: query,
       })
       .done(function(response) {

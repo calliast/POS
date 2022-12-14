@@ -24,7 +24,7 @@
                 const deleteData = (customerid) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/customers/data/${customerid}`,
+                        url: `/customers/data/${customerid}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')

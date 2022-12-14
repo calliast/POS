@@ -99,7 +99,7 @@
                 const deleteData = (invoice) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/sales/id/${invoice}`,
+                        url: `/sales/id/${invoice}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')

@@ -27,7 +27,7 @@
                 const deleteData = (barcode) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `http://localhost:3023/goods/data/${barcode}`,
+                        url: `/goods/data/${barcode}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')

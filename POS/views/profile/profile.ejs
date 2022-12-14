@@ -105,7 +105,7 @@ $(document).ready(function() {
 
                 const emailCheck = (email) => {
                     const userId = $('#newEmail').attr('data-email')
-                    $.post(`http://localhost:3023/profile/main/${userId}`, { email })
+                    $.post(`/profile/main/${userId}`, { email })
                         .done(function(response) {
                             if (response.data) {
                                 // Set input as valid
