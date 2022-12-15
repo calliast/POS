@@ -9,7 +9,7 @@ module.exports = function (db) {
   router.route("/").get(isLoggedIn, async function (req, res) {
     try {
       // let sql = `SELECT "userid", "email", "name", "password", "role" FROM users ORDER BY "userid" ASC`;
-      res.render("./page/index", {
+      res.render("index", {
         user: req.session.user,
         active: `dashboard`,
       });
@@ -27,7 +27,7 @@ module.exports = function (db) {
   router
     .route("/login")
     .get(async function (req, res) {
-      res.render("./page/login", { error: req.flash(`error`) });
+      res.render("login", { error: req.flash(`error`) });
     })
     .post(async function (req, res) {
       try {
@@ -65,7 +65,7 @@ module.exports = function (db) {
   router
     .route("/register")
     .get(async function (req, res) {
-      res.render("./page/register", { error: req.flash(`error`) });
+      res.render("register", { error: req.flash(`error`) });
     })
     .post(async function (req, res) {
       try {

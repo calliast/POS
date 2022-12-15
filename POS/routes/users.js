@@ -44,7 +44,7 @@ module.exports = function (db) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        sql = `INSERT INTO users("email", "name", "password", "role") VALUES ($1, $2, $3, $4)`;
+        sql = `INSERT INTO users("email", "name", "password", "role") VALUES ($1, $2, $3, $4) returning *`;
 
         const { rows: newUser } = await db.query(sql, [
           email,
@@ -53,7 +53,12 @@ module.exports = function (db) {
           role,
         ]);
 
-        req.flash(`success`, `Username ${name} has been created`)
+        if (newUnit.length > 0) {
+          req.flash(`success`, `A new user ${name} has been added!`);
+        } else {
+          req.flash(`error`, `Error when adding a new unit ${name}!`);
+        }
+
         res.redirect('/users');
       } catch (error) {
         res.json(error);
@@ -146,10 +151,14 @@ module.exports = function (db) {
       try {
         const { email, name, role } = req.body;
         const { userid } = req.params;
-        sql = `UPDATE users SET "email" = $1, "name" = $2, "role" = $3 WHERE "userid" = $4`;
+        sql = `UPDATE users SET "email" = $1, "name" = $2, "role" = $3 WHERE "userid" = $4 returning *`;
         const { rows: updateUser } = await db.query(sql, [email, name, role, parseInt(userid)]);
 
-        req.flash(`success`, `User ${name} has been updated.`)
+        if (newUnit.length > 0) {
+          req.flash(`success`, `User ${name} has been updated!`);
+        } else {
+          req.flash(`error`, `Error when updating user ${name}!`);
+        }
         res.redirect("/users");
       } catch (error) {
         res.json(error);

@@ -12,8 +12,9 @@ module.exports = function (db) {
       try {
         res.render("./customers/customers", {
           user: req.session.user,
-          info: req.flash(`info`),
-          active: `customers`
+          success: req.flash(`success`),
+          error: req.flash(`error`),
+          active: `customers`,
         });
       } catch (error) {
         res.json(error);
@@ -27,7 +28,7 @@ module.exports = function (db) {
       try {
         res.render("./customers/add", {
           user: req.session.user,
-          active: `customers/add`
+          active: `customers/add`,
         });
       } catch (error) {
         res.json(error);
@@ -39,9 +40,19 @@ module.exports = function (db) {
       try {
         const { name, address, phone } = req.body;
 
-        sql = `INSERT INTO customers("name", "address", "phone") VALUES($1,$2,$3)`;
+        sql = `INSERT INTO customers("name", "address", "phone") VALUES($1,$2,$3) returning *`;
 
-        await db.query(sql, [name, address, phone]);
+        const { rows: addCustomer } = await db.query(sql, [
+          name,
+          address,
+          phone,
+        ]);
+
+        if (addCustomer.length > 0) {
+          req.flash(`success`, `A new customer ${name} has been added!`);
+        } else {
+          req.flash(`error`, `Error when adding customer ${name}!`);
+        }
 
         res.redirect("/customers");
       } catch (error) {
@@ -104,7 +115,7 @@ module.exports = function (db) {
         res.render("./customers/edit", {
           user: req.session.user,
           data: selectData.rows,
-          active: `customers/edit`
+          active: `customers/edit`,
         });
       } catch (error) {
         res.json(error);
@@ -113,14 +124,19 @@ module.exports = function (db) {
     // 5. Saved updated data
     .post(isLoggedIn, async function (req, res) {
       try {
-        sql = `UPDATE customers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "customerid" = $4`;
+        sql = `UPDATE customers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "customerid" = $4 returning *`;
 
         const { name, address, phone } = req.body;
 
         const response = [name, address.trim(), phone, req.params.customerid];
 
-        console.log({ response });
-        await db.query(sql, response);
+        const { rows: updateCustomer } = await db.query(sql, response);
+
+        if (updateCustomer.length > 0) {
+          req.flash(`success`, `Customer ${name} has been updated!`);
+        } else {
+          req.flash(`error`, `Error when updating customer ${name}'s data!`);
+        }
 
         res.redirect("/customers");
       } catch (error) {

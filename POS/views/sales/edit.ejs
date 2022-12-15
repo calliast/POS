@@ -10,7 +10,7 @@
 
         <div id="sale-section" class="card shadow mb-4">
           <div class="card-header py-3">
-              <h3 id="sale-form-title" class="m-0 font-weight-light text-grey">New Transaction</h3>
+              <h3 id="sale-form-title" class="m-0 font-weight-light text-grey">Transaction</h3>
           </div>
           <div class="card-body">
               <form id="sale-form" method="POST">
@@ -25,11 +25,11 @@
                       </div>
                       <div class="col">
                           <label for="operator" class="col-sm-auto col-form-label">Operator</label>
-                            <input type="" id="operator" name="operator" class="form-control" placeholder="Operator" value="<%= invoice.name %>" disabled>
+                            <input type="" id="operator" name="operator" class="form-control" placeholder="Operator" value="<%= invoice.operator %>" disabled>
                       </div>
                   </div>
               </form>
-              <form id="invoice-form" action="/sales/invoice/">
+              <form id="invoice-form" action="/sales/data/invoice/<%= invoice.invoice %>">
                   <hr>
                   <div class="row pb-3">
                       <div class="col">
@@ -107,11 +107,11 @@
                     <input type="text" class="form-control" id="totalsum" placeholder="0,00" value="<%= invoice.totalsum %>" readonly>
                 </div>
                 </div>
-            <form id="customer-form" action="/sales/new/<%= invoice.invoice %>" method="POST">
+            <form id="customer-form" action="/sales/transaction/<%= invoice.invoice %>" method="POST">
                 <div class="form-group row">
                     <label for="pay" class="col-sm-2 col-form-label">Pay</label>
                     <div class="col-sm-10">
-                      <input name="pay" type="number" class="form-control" id="pay" placeholder="0,00" value="<%= invoice.pay ? invoice.pay: 0 %>" pattern="[0-9]+" title="please enter number only" min="0" required>
+                      <input name="pay" type="number" class="form-control" id="pay" placeholder="0,00" value="<%= invoice.pay != 0 ? invoice.pay: `` %>" pattern="[0-9]+" title="please enter number only" min="0" required>
                   </div>
                   </div>
                   <div class="form-group row">
@@ -124,8 +124,9 @@
                     <label for="customers" class="col-sm-2 col-form-label pb-3">Customer</label>
                     <div class="col-sm-10">
                         <select id="customer" name="customer" class="form-control">
+                            <option value="" disabled <%= invoice.customer ? `` : `selected`%>>Select customer</option>
                             <% customer.forEach((data) => { %>
-                                <option value="<%= data.customerid %>"><%= data.customerid + '. ' + data.name %></option>
+                                <option value="<%= data.customerid %>" <%= invoice.customer === data.customerid ? `selected`: ``%>><%= data.customerid + '. ' + data.name %></option>
                                 <% }) %>
                             </select>
                         </div>
@@ -166,7 +167,7 @@
                     "info": false,
                     "processing": true,
                     "serverSide": true,
-                    "ajax": `/sales/new/${noInvoice}`,
+                    "ajax": `/sales/data/invoice/${noInvoice}`,
                     "columns": [
                         {'data': 'id'},
                         {'data': 'itemcode'},
@@ -246,59 +247,54 @@
 
                 // add item list
                 const addItem = (invoice, itemcode, quantity) => {
-                    $.post(`/sales/invoice`, { invoice, itemcode, quantity })
+                    $.post(`/sales/data/invoice/${invoice}`, {itemcode, quantity })
                         .done(function (response) {
                         // Reload table
+                        $('#totalsum').val(response.data.totalsum)
                         $('#quantity').val(0)
                         $('#dataInvoice').DataTable().clear().ajax.reload();
 
-                        updateSum()
+                        // updateSum()
                         setTimeout(()=> {
                             updateAlert()
                         }, 2000)
                         })
                         .fail(function (err) {
-                        console.log(err);
-                        alert("gagal pake jquery");
+                        console.log('error add item', err);
+                        alert("gagal adding item into invoice");
                         });
                 };
 
                 // Delete item from invoice list
                 const deleteData = (id) => {
+                    const invoice = $('#invoice').val()
                     $.ajax({
                         method: 'DELETE',
-                        url: `/sales/invoice/${id}`,
-                        dataType: 'json'
+                        url: `/sales/data/item/${id}`,
+                        dataType: 'json',
+                        data: {
+                            invoice
+                        }
                     }).done(function(response) {
+                        $('#totalsum').val(response.data.totalsum)
                         $('#deleteModal').modal('toggle')
 
                         // subtract goods stock
                         updateGoods($('#itemcode').val(), true)
                         $('#dataInvoice').DataTable().clear().ajax.reload()
-                        updateSum()
+
                         setTimeout(()=> {
                             updateAlert()
                         }, 2000)
                     }).fail(function(error) {
+                        console.log('error delete item dari invoice', error);
                         alert('gagal bro')
-                    })
-                }
-
-                // Update totalsum
-                const updateSum = () => {
-                    const invoice = $('#invoice').val()
-                    $.post(`/sales/id/${invoice}`)
-                    .done(function(response) {
-                        $('#totalsum').val(response.totalsum)
-                    })
-                    .fail(function(error) {
-                        alert(`update sum gagal bro`)
                     })
                 }
 
                 // Get Goods
                 const updateGoods = (barcode, stock) => {
-                    $.post(`/sales/get-goods/${barcode}`)
+                    $.post(`/sales/data/goods/${barcode}`)
                     .done(function(response) {
                         if (stock) {
                             $('#stock').val(response.stock - $('#quantity').val())
@@ -309,6 +305,7 @@
                         }
                     })
                     .fail(function(error) {
+                        console.log('error update goods', error);
                         alert(`update goods gagal bro`)
                     })
                 }

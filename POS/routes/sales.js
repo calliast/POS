@@ -4,8 +4,9 @@ const moment = require("moment");
 const { isLoggedIn } = require("../helpers/util");
 
 module.exports = function (db) {
-  let fromSales = ``;
+  let fromSales;
 
+  /* OVERVIEW */
   router
     .route("/")
     // Render sales page
@@ -14,7 +15,8 @@ module.exports = function (db) {
         //. Return response
         res.render("./sales/sales", {
           user: req.session.user,
-          info: req.flash(`info`),
+          success: req.flash(`success`),
+          error: req.flash(`error`),
           active: `sales`,
         });
       } catch (error) {
@@ -23,67 +25,7 @@ module.exports = function (db) {
     });
 
   router
-    .route("/new")
-    // Generate new invoice then redirect to add form
-    .get(isLoggedIn, async function (req, res) {
-      try {
-        //. Request
-        const { userid } = req.session.user;
-        //. Add variable
-        fromSales = `INSERT INTO sales (totalsum, operator) VALUES(0, $1) returning *`;
-        //. Querying
-        const getInvoice = await db.query(fromSales, [userid]);
-        //. Return response
-        res.redirect(`/sales/id/${getInvoice.rows[0].invoice}`);
-      } catch (error) {
-        res.json(error);
-      }
-    });
-
-  router
-    .route("/new/:invoice")
-    // Populate invoice table
-    .get(isLoggedIn, async function (req, res) {
-      try {
-        //. Request
-        const whereInvoice = req.params.invoice;
-        const sortBy = req.query.columns[req.query.order[0].column].data;
-        const sortMode = req.query.order[0].dir;
-        //. Add variable
-        let params = [];
-        let fromThisInvoice = `SELECT saleitems.id, saleitems.invoice, saleitems.itemcode, goods.name, saleitems.quantity, saleitems.sellingprice, saleitems.totalprice FROM saleitems LEFT OUTER JOIN goods ON saleitems.itemcode = goods.barcode WHERE invoice = $1`;
-        //. Querying
-        const getData = await db.query(fromThisInvoice, [whereInvoice]);
-        const response = {
-          draw: Number(req.query.draw),
-          data: getData.rows,
-          info: req.flash(`info`),
-        };
-        //. Return response
-        res.json(response);
-      } catch (error) {
-        res.json(error);
-      }
-    })
-    // Save payment and customer in a transaction
-    .post(isLoggedIn, async function (req, res) {
-      try {
-        //. Request
-        const whereInvoice = req.params.invoice;
-        const { pay = 0, change = 0, customer = 1 } = req.body;
-
-        //. Add variable
-        fromSales = `UPDATE sales SET "pay" = $1, "change" = $2, "customer" = $3 WHERE "invoice" = $4`;
-        //. Return response 1
-        await db.query(fromSales, [pay, change, customer, whereInvoice]);
-        res.redirect("/sales");
-      } catch (error) {
-        res.json(error);
-      }
-    });
-
-  router
-    .route("/id")
+    .route("/table")
     // Read sales table
     .get(isLoggedIn, async function (req, res) {
       try {
@@ -121,26 +63,45 @@ module.exports = function (db) {
     });
 
   router
-    .route("/id/:invoice")
-    // Redirect to add form
+    .route("/new-transaction")
+    // Generate new invoice then redirect to add form
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        //. Request
+        const { userid } = req.session.user;
+        //. Add variable
+        fromSales = `INSERT INTO sales (totalsum, operator) VALUES(0, $1) returning *`;
+        //. Querying
+        const { rows: getInvoice } = await db.query(fromSales, [userid]);
+        //. Return response
+        res.redirect(`/sales/transaction/${getInvoice[0].invoice}`);
+      } catch (error) {
+        res.json(error);
+      }
+    });
+
+  /* TRANSACTION */
+  router
+    .route("/transaction/:invoice")
+    // Render add form
     .get(isLoggedIn, async function (req, res) {
       try {
         //. Request
         const { invoice } = req.params;
         //. Add variable
-        fromSales = `SELECT * FROM sales LEFT OUTER JOIN users ON sales.operator = users.userid WHERE "invoice" = $1`;
-        let fromGoods = `SELECT * FROM goods`;
-        let fromCustomers = `SELECT * FROM customers`;
+        let sqlGetSales = `SELECT sales.invoice as invoice, sales.time as time, users.name as operator, sales.totalsum as totalsum, sales.pay as pay, sales.change as change, sales.customer as customer FROM sales LEFT OUTER JOIN users ON sales.operator = users.userid LEFT OUTER JOIN customers ON sales.customer = customers.customerid WHERE "invoice" = $1`;
+        let sqlGetGoods = `SELECT * FROM goods ORDER BY "barcode" ASC`;
+        let sqlGetCustomers = `SELECT * FROM customers ORDER BY "customerid" ASC`;
         //. Querying
-        const getSales = await db.query(fromSales, [invoice]);
-        const getGoods = await db.query(fromGoods);
-        const getCustomers = await db.query(fromCustomers);
+        const { rows: getInvoice } = await db.query(sqlGetSales, [invoice]);
+        const { rows: getGoods } = await db.query(sqlGetGoods);
+        const { rows: getCustomers } = await db.query(sqlGetCustomers);
         //. Return response
         res.render("./sales/edit", {
           user: req.session.user,
-          invoice: getSales.rows[0],
-          goods: getGoods.rows,
-          customer: getCustomers.rows,
+          invoice: getInvoice[0],
+          goods: getGoods,
+          customer: getCustomers,
           info: req.flash(`info`),
           setDate: moment,
           active: `sales/edit`,
@@ -149,16 +110,25 @@ module.exports = function (db) {
         res.json(error);
       }
     })
-    // Get totalsum of sales
+    // Save payment and customer in a sales transaction
     .post(isLoggedIn, async function (req, res) {
       try {
         //. Request
-        const whereInvoice = req.params.invoice;
+        const { invoice } = req.params;
+        const { pay = 0, change = 0, customer = 1 } = req.body;
+
         //. Add variable
-        fromSales = `SELECT * FROM sales WHERE "invoice" = $1`;
-        //. Querying
-        const getSales = await db.query(fromSales, [whereInvoice]);
-        res.json(getSales.rows[0]);
+        fromSales = `UPDATE sales SET "pay" = $1, "change" = $2, "customer" = $3 WHERE "invoice" = $4 returning *`;
+        //. Return response 1
+        const {rows: salesUpdated} = await db.query(fromSales, [pay, change, customer, invoice]);
+
+        if (salesUpdated.length < 1) {
+          req.flash(`error`, `Failure when updating sales number ${invoice}`)
+        } else {
+          req.flash(`success`, `Sales number ${invoice} has been updated!`)
+        }
+        
+        res.redirect("/sales");
       } catch (error) {
         res.json(error);
       }
@@ -167,71 +137,115 @@ module.exports = function (db) {
     .delete(isLoggedIn, async function (req, res) {
       try {
         //. Request
-        const whereInvoice = req.params.invoice;
+        const { invoice } = req.params;
         //. Add variable
         fromSales = `DELETE FROM sales WHERE "invoice" = $1 returning *`;
         //. Querying
-        const removeInvoice = await db.query(fromSales, [whereInvoice]);
+        const { rows: itemDeleted } = await db.query(fromSales, [invoice]);
         //. Return response
-        res.json(removeInvoice.rows);
+        res.json(itemDeleted);
       } catch (error) {
         res.json(error);
       }
     });
 
   router
-    .route("/invoice")
-    // Add a new item into invoice list
-    .post(isLoggedIn, async function (req, res) {
+    .route("/data/invoice/:invoice")
+    // Populate invoice table
+    .get(isLoggedIn, async function (req, res) {
       try {
         //. Request
-        const { invoice, itemcode, quantity } = req.body;
+        const { invoice } = req.params;
+        const sortBy = req.query.columns[req.query.order[0].column].data;
+        const sortMode = req.query.order[0].dir;
         //. Add variable
-        let intoInvoice = `INSERT INTO saleitems("invoice", "itemcode", "quantity") VALUES ($1, $2, $3) returning *`;
+        let params = [];
+        let sqlGetItemList = `SELECT saleitems.id, saleitems.invoice, saleitems.itemcode, goods.name, saleitems.quantity, saleitems.sellingprice, saleitems.totalprice FROM saleitems LEFT OUTER JOIN goods ON saleitems.itemcode = goods.barcode WHERE invoice = $1`;
         //. Querying
-        const addItem = await db.query(intoInvoice, [
+        const getData = await db.query(sqlGetItemList, [invoice]);
+        const response = {
+          draw: Number(req.query.draw),
+          data: getData.rows,
+        };
+        //. Return response
+        res.json(response);
+      } catch (error) {
+        res.json(error);
+      }
+    })
+    // Add a new item into invoice list and update totalSum
+    .post(isLoggedIn, async function (req, res) {
+      try {
+        // Add item to the list
+        //. Request
+        const { itemcode, quantity } = req.body;
+        const { invoice } = req.params;
+
+        //. Add variable
+        let sqlAddItems = `INSERT INTO saleitems("invoice", "itemcode", "quantity") VALUES ($1, $2, $3) returning *`;
+        let sqlUpdateSum = `SELECT * FROM sales WHERE "invoice" = $1`;
+
+        //. Querying
+        const { rows: itemAdded } = await db.query(sqlAddItems, [
           invoice,
           itemcode,
           parseInt(quantity),
         ]);
+
+        // then update the total SUM
+        const { rows: getSum } = await db.query(sqlUpdateSum, [invoice]);
+
         //. Returning response
-        res.json(getPurchases.rows[0]);
+        res.json({
+          data: getSum[0],
+        });
       } catch (error) {
         res.json(error);
       }
     });
 
   router
-    .route("/invoice/:id")
-    // Remove an item from an invoice
+    .route("/data/item/:id")
+    // Remove an item from an invoice and update totalSum
     .delete(isLoggedIn, async function (req, res) {
       try {
         //. Request
-        const whereId = req.params.id;
+        const { id } = req.params;
+        const { invoice } = req.body;
+
         //. Add variable
-        fromInvoice = `DELETE FROM saleitems WHERE "id" = $1 returning *`;
+        let sqlDeleteItem = `DELETE FROM saleitems WHERE "id" = $1 returning *`;
+        let sqlUpdateSum = `SELECT * FROM sales WHERE "invoice" = $1`;
+
         //. Querying
-        const deleteItem = await db.query(fromInvoice, [parseInt(whereId)]);
+        const { rows: itemDeleted } = await db.query(sqlDeleteItem, [
+          parseInt(id),
+        ]);
+        // then update the total SUM
+        const { rows: getSum } = await db.query(sqlUpdateSum, [invoice]);
+
         //. Returning response
-        res.json(deleteItem);
+        res.json({
+          data: getSum[0],
+        });
       } catch (error) {
         res.json(error);
       }
     });
 
   router
-    .route("/get-goods/:barcode")
+    .route("/data/goods/:barcode")
     // Get item from goods
     .post(isLoggedIn, async function (req, res) {
       try {
         //. Request
         const { barcode } = req.params;
         //. Add variable
-        let fromGoods = `SELECT * FROM goods WHERE barcode = $1`;
+        let sqlGetGoods = `SELECT * FROM goods WHERE barcode = $1 ORDER BY "barcode" ASC`;
         //. Querying
-        const getList = await db.query(fromGoods, [barcode]);
+        const { rows: getGoods } = await db.query(sqlGetGoods, [barcode]);
         //. Returning response
-        res.json(getList.rows[0]);
+        res.json(getGoods[0]);
       } catch (error) {
         res.json(error);
       }

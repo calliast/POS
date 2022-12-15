@@ -6,7 +6,15 @@
 
                 <!-- Page Heading -->
                     <h1 class="h3 mb-2 text-gray-800">Customers</h1>
-
+                    <p>This is data of Customers</p>
+                
+                    <% if (error.length > 0) { %>
+                        <div class="btn btn-user btn-block alert alert-danger" role="alert"><%= error %></div>
+                        <% } %>
+                    
+                        <% if (success.length > 0) { %>
+                          <div class="btn btn-user btn-block alert alert-success" role="alert"><%= success %></div>
+                          <% } %>
 <%- include('./list') %> 
 
                 </div>

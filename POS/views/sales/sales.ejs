@@ -31,7 +31,7 @@
                         "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
                         "processing": true,
                         "serverSide": true,
-                        "ajax": "/sales/id",
+                        "ajax": "/sales/table",
                         "columns": [
                             {'data': 'invoice'},
                             {
@@ -64,9 +64,9 @@
                                 'orderable': false,
                                 'render': function(data, row, meta) {
                                     if (meta.operator == operatorId) {
-                                        return `<a href="/sales/id/${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></a>`
+                                        return `<a href="/sales/transaction/${data}" class="btn btn-success btn-circle anchor_edit"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove"><i class="fas fa-trash"></i></a>`
                                     } else {
-                                        return `<a href="/sales/id/${data}" class="btn btn-success btn-circle anchor_edit disabled"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove disabled"><i class="fas fa-trash"></i></a>`
+                                        return `<a href="/sales/transaction/${data}" class="btn btn-success btn-circle anchor_edit disabled"><i class="fas fa-info-circle"></i></a>  <a data-id="${data}" data-toggle="modal" data-target="#deleteModal" class="btn btn-danger btn-circle anchor_remove disabled"><i class="fas fa-trash"></i></a>`
                                     }
                                 }
                             },
@@ -95,7 +95,7 @@
                 const deleteData = (invoice) => {
                     $.ajax({
                         method: 'DELETE',
-                        url: `/sales/id/${invoice}`,
+                        url: `/sales/transaction/${invoice}`,
                         dataType: 'json'
                     }).done(function(response) {
                         $('#deleteModal').modal('toggle')
@@ -105,7 +105,8 @@
                             updateAlert()
                         }, 2000)
                     }).fail(function(error) {
-                        alert('gagal bro')
+                        console.log('error delete', error);
+                        alert('Failure when deleting')
                     })
                 }
 

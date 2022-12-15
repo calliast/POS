@@ -14,7 +14,8 @@ module.exports = function (db) {
       try {
         res.render("./goods/goods", {
           user: req.session.user,
-          info: req.flash(`info`),
+          success: req.flash(`success`),
+          error: req.flash(`error`),
           active: `goods`,
         });
       } catch (error) {
@@ -65,7 +66,7 @@ module.exports = function (db) {
         );
 
         // /* Driver code to add data */
-        sql = `INSERT INTO goods("barcode", "name", "stock", "unit", "purchaseprice", "sellingprice", "picture") VALUES($1,$2,$3,$4,$5,$6,$7)`;
+        sql = `INSERT INTO goods("barcode", "name", "stock", "unit", "purchaseprice", "sellingprice", "picture") VALUES($1,$2,$3,$4,$5,$6,$7) returning *`;
 
         const response = [
           barcode,
@@ -77,8 +78,14 @@ module.exports = function (db) {
           pictureName,
         ];
 
-        await db.query(sql, response);
+        const {rows: addGoods} =  await db.query(sql, response);
         await picture.mv(uploadPath);
+
+        if (addGoods.length > 0) {
+          req.flash(`success`, `A new goods ${name} has been added!`);
+        } else {
+          req.flash(`error`, `Error when adding a new goods!`);
+        }
 
         res.redirect("/goods");
       } catch (error) {
@@ -178,7 +185,7 @@ module.exports = function (db) {
 
         if (!req.files || Object.keys(req.files).length === 0) {
           // /* Driver code to update data */
-          sql = `UPDATE goods SET "barcode" = $1, "name" = $2, "stock" = $3, "purchaseprice" = $4, "sellingprice" = $5, "unit" = $6 WHERE "barcode" = $7`;
+          sql = `UPDATE goods SET "barcode" = $1, "name" = $2, "stock" = $3, "purchaseprice" = $4, "sellingprice" = $5, "unit" = $6 WHERE "barcode" = $7 returning *`;
 
           response = [
             barcode,
@@ -190,8 +197,13 @@ module.exports = function (db) {
             barcode,
           ];
 
-          await db.query(sql, response);
+          const {rows: updateGoodsNoPicture} = await db.query(sql, response);
 
+          if (updateGoodsNoPicture.length > 0) {
+            req.flash(`success`, `${name} has been updated!`);
+          } else {
+            req.flash(`error`, `Error when updating ${name}!`);
+          }
           return res.redirect("/goods");
         }
 
@@ -221,10 +233,16 @@ module.exports = function (db) {
         ];
 
         // /* Driver code to update data */
-        sql = `UPDATE goods SET "barcode" = $1, "name" = $2, "stock" = $3, "purchaseprice" = $4, "sellingprice" = $5, "unit" = $6, "picture" = $7 WHERE "barcode" = $8`;
+        sql = `UPDATE goods SET "barcode" = $1, "name" = $2, "stock" = $3, "purchaseprice" = $4, "sellingprice" = $5, "unit" = $6, "picture" = $7 WHERE "barcode" = $8 returning *`;
 
-        await db.query(sql, response);
+        const {rows: updateGoods} = await db.query(sql, response);
         await picture.mv(uploadPath);
+        
+        if (updateGoods.length > 0) {
+          req.flash(`success`, `${name} has been updated!`);
+        } else {
+          req.flash(`error`, `Error when updating ${name}!`);
+        }
 
         res.redirect("/goods");
       } catch (error) {

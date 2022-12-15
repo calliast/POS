@@ -1,5 +1,5 @@
-<%- include('../layouts/header') %> 
-<%- include('../layouts/nav') %> 
+<%- include('./layouts/header') %> 
+<%- include('./layouts/nav') %> 
 
     <!-- Begin Page Content -->
     <div class="container-fluid">
@@ -8,11 +8,11 @@
         class="d-sm-flex align-items-center justify-content-between mb-4"
       >
         <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-        <a
-          href="#"
+        <button
+          id="download-report"
           class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
           ><i class="fas fa-download fa-sm text-white-50"></i> Generate
-          Report</a
+          Report</button
         >
       </div>
 
@@ -434,7 +434,8 @@ $('document').ready(function() {
             return currencyFormatter.format(item.yLabel)
           }
         }
-      }
+      },
+      maintainAspectRatio : false,
     }
   });
 
@@ -514,8 +515,34 @@ $('#earnings-form').submit(function (e) {
   }
   readCharts(response)
 })
+
+const { Parser } = json2csv
+const makeCSV = new Parser
+
+$('#download-report').click(function() {
+  $.get(`/main/report`)
+  .done(function(response) {
+    let report = makeCSV.parse(response.data)
+    
+    let csvFile;
+    let downloadLink;
+
+    // define the file type to text/csv
+    csvFile = new Blob([report], {type: 'text/csv'});
+    downloadLink = document. createElement("a");
+    downloadLink.download = `monthly-report-2022`;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+  })
+  .fail(function(error) {
+    console.log(`error di fungsi download`, error);
+  })
 })
 
+})
 
 </script>
 
@@ -524,4 +551,4 @@ $('#earnings-form').submit(function (e) {
     </div>
     <!-- End of Main Content -->
 
-    <%- include('../layouts/footer') %> 
+    <%- include('./layouts/footer') %> 

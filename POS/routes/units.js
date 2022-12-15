@@ -12,7 +12,6 @@ module.exports = function (db) {
       try {
         res.render("./units/units", {
           user: req.session.user,
-          info: req.flash(`info`),
           success: req.flash(`success`),
           error: req.flash(`error`),
           active: `units`,
@@ -41,11 +40,16 @@ module.exports = function (db) {
         const { unit, name, note } = req.body;
 
         // Save data
-        sql = `INSERT INTO units("unit", "name", "note") VALUES ($1, $2, $3)`;
+        sql = `INSERT INTO units("unit", "name", "note") VALUES ($1, $2, $3) returning *`;
 
         const { rows: newUnit } = await db.query(sql, [unit, name, note]);
 
-        req.flash(`success`, `Unit ${unit} has been created`);
+        if (newUnit.length > 0) {
+          req.flash(`success`, `A new unit ${unit} has been added!`);
+        } else {
+          req.flash(`error`, `Error when adding a new unit ${unit}!`);
+        }
+
         res.redirect("/units");
       } catch (error) {
         res.json(error);
@@ -138,7 +142,7 @@ module.exports = function (db) {
       try {
         const { unit, name, note } = req.body;
 
-        sql = `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4`;
+        sql = `UPDATE units SET "unit" = $1, "name" = $2, "note" = $3 WHERE "unit" = $4 returning *`;
         const { rows: updateUnit } = await db.query(sql, [
           unit,
           name,
@@ -146,7 +150,12 @@ module.exports = function (db) {
           req.params.unit,
         ]);
 
-        req.flash(`success`, `Unit ${unit} has been updated.`)
+        if (updateUnit.length > 0) {
+          req.flash(`success`, `Unit ${unit} has been updated!`);
+        } else {
+          req.flash(`error`, `Error when updating unit ${unit}!`);
+        }
+
         res.redirect("/units")
       } catch (error) {
         res.json(error);

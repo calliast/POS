@@ -3,8 +3,11 @@ var router = express.Router();
 const { isAdmin } = require("../helpers/util");
 
 module.exports = function (db) {
+
+  router
+  .route("/")
   /* HOMEPAGE - DASHBOARD */
-  router.route("/").get(isAdmin, async function (req, res) {
+  .get(isAdmin, async function (req, res) {
     let sql;
     try {
       sql = `SELECT COUNT(*) AS timessales, SUM(totalsum) AS totalsales, (SELECT SUM(totalsum) FROM purchases) AS totalpurchases, SUM(totalsum) - (SELECT SUM(totalsum) FROM purchases) AS earnings FROM sales`;
@@ -18,7 +21,10 @@ module.exports = function (db) {
     }
   });
 
-  router.route("/chart").get(isAdmin, async function (req, res) {
+  router
+  .route("/chart")
+  // Line chart and doughnut chart
+  .get(isAdmin, async function (req, res) {
     try {
       let params = [];
       const { startDate, endDate } = req.query;
@@ -57,7 +63,10 @@ module.exports = function (db) {
     }
   });
 
-  router.route("/table").get(isAdmin, async function (req, res) {
+  router
+  .route("/table")
+  // Monthly report
+  .get(isAdmin, async function (req, res) {
     try {
       let params = [];
 
@@ -91,6 +100,23 @@ module.exports = function (db) {
       };
 
       res.json(response);
+    } catch (error) {
+      res.json(error);
+    }
+  });
+
+  router
+  .route("/report")
+  // Monthly report
+  .get(isAdmin, async function (req, res) {
+    try {
+      let queryData = `SELECT * FROM pos_monthly_report`;
+
+      const { rows : getReport} = await db.query(queryData);
+
+      res.json({
+        data: getReport,
+      });
     } catch (error) {
       res.json(error);
     }

@@ -6,19 +6,20 @@ module.exports = function (db) {
   let sql;
 
   router
-  .route("/")
-  // 1. Render suppliers page
-  .get(isLoggedIn, async function (req, res) {
-    try {
-      res.render("./suppliers/suppliers", {
-        user: req.session.user,
-        info: req.flash(`info`),
-        active: `suppliers`
-      });
-    } catch (error) {
-      res.json(error);
-    }
-  });
+    .route("/")
+    // 1. Render suppliers page
+    .get(isLoggedIn, async function (req, res) {
+      try {
+        res.render("./suppliers/suppliers", {
+          user: req.session.user,
+          success: req.flash(`success`),
+          error: req.flash(`error`),
+          active: `suppliers`,
+        });
+      } catch (error) {
+        res.json(error);
+      }
+    });
 
   router
     .route("/add")
@@ -27,7 +28,7 @@ module.exports = function (db) {
       try {
         res.render("./suppliers/add", {
           user: req.session.user,
-          active: `suppliers/add`
+          active: `suppliers/add`,
         });
       } catch (error) {
         res.json(error);
@@ -39,9 +40,19 @@ module.exports = function (db) {
         const { name, address, phone } = req.body;
 
         // /* Driver code to add data */
-        sql = `INSERT INTO suppliers("name", "address", "phone") VALUES($1,$2,$3)`;
+        sql = `INSERT INTO suppliers("name", "address", "phone") VALUES($1,$2,$3) returning *`;
 
-        await db.query(sql, [name, address, phone]);
+        const { rows: addSupplier } = await db.query(sql, [
+          name,
+          address,
+          phone,
+        ]);
+
+        if (addSupplier.length > 0) {
+          req.flash(`success`, `A new supplier ${name} has been added!`);
+        } else {
+          req.flash(`error`, `Error when adding new supplier ${name}!`);
+        }
 
         res.redirect("/suppliers");
       } catch (error) {
@@ -104,7 +115,7 @@ module.exports = function (db) {
         res.render("./suppliers/edit", {
           user: req.session.user,
           data: getSuppliersData,
-          active: `suppliers/edit`
+          active: `suppliers/edit`,
         });
       } catch (error) {
         res.json(error);
@@ -114,15 +125,21 @@ module.exports = function (db) {
     .post(isLoggedIn, async function (req, res) {
       try {
         // /* Driver code to update data */
-        sql = `UPDATE suppliers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "supplierid" = $4`;
+        sql = `UPDATE suppliers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "supplierid" = $4 returning *`;
 
         const { name, address, phone } = req.body;
-        await db.query(sql, [
+        const { rows: updateSupplier } = await db.query(sql, [
           name,
           address.trim(),
           phone,
           req.params.supplierid,
         ]);
+
+        if (updateSupplier.length > 0) {
+          req.flash(`success`, `Supplier ${name} has been updated!`);
+        } else {
+          req.flash(`error`, `Error when updating ${name}'s data!`);
+        }
 
         res.redirect("/suppliers");
       } catch (error) {
