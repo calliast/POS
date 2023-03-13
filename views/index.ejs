@@ -329,8 +329,9 @@ $('document').ready(function() {
   const readStats = () => {
             $.ajax({
                         method: 'GET',
-                        url: `/main`,
+                        url: `/dashboard/stats`,
                     }).done(function(response) {
+                      console.log('output stats chart', response);
                         $('#display-total-sales').html(response.stats.timessales)
                         $('#display-purchase').html(currencyFormatter.format(response.stats.totalpurchases))
                         $('#display-sales').html(currencyFormatter.format(response.stats.totalsales))
@@ -347,7 +348,7 @@ $('document').ready(function() {
   $('#table-monthly-report').DataTable({
                     "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
                     "processing": true,
-                    "ajax": `/main/table`,
+                    "ajax": `/dashboard/table`,
                     "serverSide": true,
                     "footerCallback": function(row, data, start, end, display) {
                       let api = this.api()
@@ -472,10 +473,11 @@ $('document').ready(function() {
 
       $.ajax({
         method: 'GET',
-        url: '/main/chart',
+        url: '/dashboard/chart',
         data: query,
       })
       .done(function(response) {
+        console.log('output line chart', response.line);
         // reset line chart
         if(response.line.length) {
           while (earningsDefaultData.length) {earningsDefaultData.pop()}
@@ -488,6 +490,7 @@ $('document').ready(function() {
           }
 
         // reset doughnut chart
+        console.log('output doughnut chart', response.doughnut);
         if(response.doughnut.length) {
             while (customerDefaultData.length) {customerDefaultData.pop()}
             response.doughnut.forEach((item) => {
@@ -520,8 +523,9 @@ const { Parser } = json2csv
 const makeCSV = new Parser
 
 $('#download-report').click(function() {
-  $.get(`/main/report`)
+  $.get(`/dashboard/report`)
   .done(function(response) {
+    console.log('output download report', response);
     let report = makeCSV.parse(response.data)
     
     let csvFile;

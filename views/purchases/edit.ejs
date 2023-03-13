@@ -16,15 +16,15 @@
                   <div class="row pb-3">
                       <div class="col">
                         <label for="invoice" class="col-sm-auto col-form-label">Invoice</label>
-                      <input form="invoice-form" name="invoice" type="text" id="invoice" class="form-control" placeholder="Invoice Number" value="<%= invoice.invoice %>" disabled>
+                      <input form="invoice-form" name="invoice" type="text" id="invoice" class="form-control" placeholder="Invoice Number" value="<%= invoice.invoice %>" readonly>
                       </div>
                       <div class="col">
                           <label for="name" class="col-sm-auto col-form-label">Time</label>
-                            <input type="" id="time" name="time" class="form-control" placeholder="DD MMMM YYYY HH:MM:SS" value="<%= setDate(invoice.time).format('DD MMM YYYY HH:mm:ss') %>" disabled>
+                            <input type="" id="time" name="time" class="form-control" placeholder="DD MMMM YYYY HH:MM:SS" value="<%= setDate(invoice.time).format('DD MMM YYYY HH:mm:ss') %>" readonly>
                       </div>
                       <div class="col">
                           <label for="operator" class="col-sm-auto col-form-label">Operator</label>
-                            <input type="" id="operator" name="operator" class="form-control" placeholder="Operator" value="<%= invoice.operator %>" disabled>
+                            <input type="" id="operator" name="operator" class="form-control" placeholder="Operator" value="<%= invoice.operator %>" readonly>
                       </div>
                   </div>
               </form>
@@ -41,17 +41,17 @@
                       </div>
                       <div class="col">
                           <label for="goodsname" class="col-sm-auto col-form-label">Goods Name</label>
-                          <input type="text" id="goodsname" class="form-control" placeholder="Name" value="<%= goods[0].name %>" disabled>
+                          <input type="text" id="goodsname" class="form-control" placeholder="Name" value="<%= goods[0].name %>" readonly>
                       </div>
                       <div class="col">
                           <label for="stock" class="col-sm-auto col-form-label">Stock</label>
-                          <input type="number" id="stock" class="form-control" placeholder="0" value="<%= goods[0].stock %>" disabled>
+                          <input type="text" id="stock" class="form-control" placeholder="0" value="<%= goods[0].stock %>" readonly>
                       </div>
                   </div>
                   <div class="row pb-3">
                       <div class="col">
                           <label for="purchaseprice" class="col-sm-auto col-form-label">Purchase Price</label>
-                          <input type="number" step="1" min="'0" class="form-control" id="purchaseprice" placeholder="0.00" value="<%= goods[0].purchaseprice %>" required>
+                          <input type="text" class="form-control" id="purchaseprice" placeholder="0.00" value="<%= goods[0].purchaseprice %>" readonly>
                       </div>
                       <div class="col">
                           <label for="quantity" class="col-sm-auto col-form-label">Qty</label>
@@ -59,7 +59,7 @@
                       </div>
                       <div class="col">
                           <label for="totalprice" class="col-sm-auto col-form-label">Total Price</label>
-                          <input type="number" min="0" class="form-control" id="totalprice" placeholder="0" disabled>
+                          <input type="text" min="0" class="form-control" id="totalprice" placeholder="0" readonly>
                       </div>
                   </div>
                   <div class="pt-3">
@@ -265,7 +265,6 @@
                         $('#deleteModal').modal('toggle')
                                                 
                         $('#dataInvoice').DataTable().clear().ajax.reload()
-                        // updateSum()
                         setTimeout(()=> {
                             updateAlert()
                         }, 2000)
