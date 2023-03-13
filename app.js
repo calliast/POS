@@ -29,16 +29,16 @@ async function main() {
 }
 
 main().then((db) => {
-  var indexRouter = require("./routes/index")(db);
-  var usersRouter = require("./routes/users")(db);
-  var unitsRouter = require("./routes/units")(db);
-  var goodsRouter = require("./routes/goods")(db);
-  var suppliersRouter = require("./routes/suppliers")(db);
-  var purchasesRouter = require("./routes/purchases")(db);
-  var customersRouter = require("./routes/customers")(db);
-  var salesRouter = require("./routes/sales")(db);
-  var dashboardRouter = require("./routes/dashboard")(db);
-  var profileRouter = require("./routes/profile")(db);
+  var indexRouter = require("./POS/routes/index")(db);
+  var usersRouter = require("./POS/routes/users")(db);
+  var unitsRouter = require("./POS/routes/units")(db);
+  var goodsRouter = require("./POS/routes/goods")(db);
+  var suppliersRouter = require("./POS/routes/suppliers")(db);
+  var purchasesRouter = require("./POS/routes/purchases")(db);
+  var customersRouter = require("./POS/routes/customers")(db);
+  var salesRouter = require("./POS/routes/sales")(db);
+  var dashboardRouter = require("./POS/routes/dashboard")(db);
+  var profileRouter = require("./POS/routes/profile")(db);
 
   var app = express();
 
