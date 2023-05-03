@@ -136,63 +136,48 @@
           </button>
 
           <!-- Topbar Search -->
-          <form
-            class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"
-          >
-            <div class="input-group">
-              <input
-                type="text"
-                class="form-control bg-light border-0 small"
-                placeholder="Search for..."
-                aria-label="Search"
-                aria-describedby="basic-addon2"
-              />
-              <div class="input-group-append">
-                <button class="btn btn-primary" type="button">
-                  <i class="fas fa-search fa-sm"></i>
-                </button>
-              </div>
-            </div>
-          </form>
+        
 
-          <!-- Topbar Navbar -->
-          <ul class="navbar-nav ml-auto">
-            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-            <li class="nav-item dropdown no-arrow d-sm-none">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="searchDropdown"
-                role="button"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
-              >
-                <i class="fas fa-search fa-fw"></i>
-              </a>
-              <!-- Dropdown - Messages -->
-              <div
-                class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                aria-labelledby="searchDropdown"
-              >
-                <form class="form-inline mr-auto w-100 navbar-search">
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      class="form-control bg-light border-0 small"
-                      placeholder="Search for..."
-                      aria-label="Search"
-                      aria-describedby="basic-addon2"
-                    />
-                    <div class="input-group-append">
-                      <button class="btn btn-primary" type="button">
-                        <i class="fas fa-search fa-sm"></i>
-                      </button>
-                    </div>
-                  </div>
-                </form>
+      <!-- Topbar Navbar -->
+      <ul class="navbar-nav ml-auto">
+        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+        <li class="nav-item dropdown no-arrow d-sm-none">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="searchDropdown"
+            role="button"
+            data-toggle="dropdown"
+            data-target="searchMobile"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <i class="fas fa-search fa-fw"></i>
+          </a>
+          <!-- Dropdown - Messages -->
+          <div
+            class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+            id="searchMobile"
+            aria-labelledby="searchDropdown"
+          >
+            <form class="form-inline mr-auto w-100 navbar-search">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control bg-light border-0 small"
+                  placeholder="Search for..."
+                  aria-label="Search"
+                  aria-describedby="basic-addon2"
+                />
+                <div class="input-group-append">
+                  <button class="btn btn-primary" type="button">
+                    <i class="fas fa-search fa-sm"></i>
+                  </button>
+                </div>
               </div>
-            </li>
+            </form>
+          </div>
+        </li>
 
             <% if (user.role == 'admin') { %>
             <!-- Nav Item - Alerts -->
@@ -249,4 +234,76 @@
             </li>
           </ul>
         </nav>
+
+        <script>
+          $(document).ready(function() {
+            $(".navbar-search .form-control").on("keyup", function() {
+              var searchValue = $(this).val().trim();
+              if (searchValue !== "") {
+                var dropdown = $(".dropdown-menu");
+                var searchList = dropdown.find(".search-list");
+                if (searchList.length == 0) {
+                  dropdown.prepend("<h6 class='dropdown-header'>Recent Searches</h6><div class='search-list'></div>");
+                  searchList = dropdown.find(".search-list");
+                }
+                searchList.html(searchList.html() + "<a class='dropdown-item' href='#'>" + searchValue + "</a>");
+              }
+            });
+
+            $('#searchWebForm').on('click', function() {
+              console.log('input ke trigger');
+              $(this).dropdown('toggle');
+            });
+          });
+
+          /*
+          <form
+        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"
+        id="searchWebForm"
+        data-toggle="dropdown"
+        data-target="searchWeb"
+      >
+        <div class="input-group">
+          <input
+            id="searchInput"
+            type="text"
+            class="form-control bg-light border-0 small"
+            placeholder="Search for..."
+            aria-label="Search"
+            aria-describedby="basic-addon2"
+          />
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button">
+              <i class="fas fa-search fa-sm"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in d-none"
+          id="searchWeb"
+          aria-labelledby="searchDropdown"
+        >
+        <h6 class='dropdown-header'>Recent Searches</h6><div class='search-list'></div>
+        <div>Test</div>
+          <!-- <form class="form-inline mr-auto w-100 navbar-search">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control bg-light border-0 small"
+                placeholder="Search for..."
+                aria-label="Search"
+                aria-describedby="basic-addon2"
+              />
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="button">
+                  <i class="fas fa-search fa-sm"></i>
+                </button>
+              </div>
+            </div>
+          </form> -->
+        </div>
+      </form>
+      */
+
+        </script>
         <!-- End of Topbar -->

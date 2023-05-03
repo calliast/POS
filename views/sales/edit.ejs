@@ -123,7 +123,7 @@
                 <div class="form-group row">
                     <label for="customers" class="col-sm-2 col-form-label pb-3">Customer</label>
                     <div class="col-sm-10">
-                        <select id="customer" name="customer" class="form-control">
+                        <select id="customer" name="customer" class="form-control" required>
                             <option value="" disabled <%= invoice.customer ? `` : `selected`%>>Select customer</option>
                             <% customer.forEach((data) => { %>
                                 <option value="<%= data.customerid %>" <%= invoice.customer === data.customerid ? `selected`: ``%>><%= data.customerid + '. ' + data.name %></option>

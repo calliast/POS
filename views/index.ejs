@@ -73,6 +73,7 @@
           </button>
           <button
             class="btn btn-warning btn-icon-split"
+            type="reset"
             id="reset-btn"
           >
             <span class="icon text-white-50">
@@ -326,71 +327,31 @@
 
 <script>
 $('document').ready(function() {
-  const readStats = () => {
-            $.ajax({
-                        method: 'GET',
-                        url: `/dashboard/stats`,
-                    }).done(function(response) {
-                      console.log('output stats chart', response);
-                        $('#display-total-sales').html(response.stats.timessales)
-                        $('#display-purchase').html(currencyFormatter.format(response.stats.totalpurchases))
-                        $('#display-sales').html(currencyFormatter.format(response.stats.totalsales))
-                        $('#display-earnings').html(currencyFormatter.format(response.stats.earnings))
-                    }).fail(function(error) {
-                        console.log('error chart waktu read data stats bar', error);
-                        alert('gagal bro chartnya')
-                    })
-        }
 
-  readStats()
+  const { Parser } = json2csv
+  const makeCSV = new Parser
 
-  // Read datatable Main Page
-  $('#table-monthly-report').DataTable({
-                    "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
-                    "processing": true,
-                    "ajax": `/dashboard/table`,
-                    "serverSide": true,
-                    "footerCallback": function(row, data, start, end, display) {
-                      let api = this.api()
-                        api.columns([1,2,3], {
-                        page: 'current'
-                        }).every(function() {
-                          var sum = this
-                          .data()
-                          .reduce(function(a, b) {
-                            var x = parseFloat(a) || 0;
-                            var y = parseFloat(b) || 0;
-                            return x + y;
-                          }, 0)
-                          $(this.footer()).html(currencyFormatter.format(sum))
-                        })
-                    },
-                    "columns": [
-                        {'data': 'monthly'},
-                        {
-                          'data': 'expense',
-                          'render': function(data) {
-                                return currencyFormatter.format(data)
-                            }
-                        },
-                        {
-                          'data': 'revenue',
-                          'render': function(data) {
-                                return currencyFormatter.format(data)
-                            }
-                        },
-                        {
-                          'data': 'earnings',
-                          'render': function(data) {
-                                return currencyFormatter.format(data)
-                            }
-                        }
-                    ],
-  })
+  $('#download-report').click(function() {
+    $.get(`/dashboard/report`)
+    .done(function(response) {
+      let report = makeCSV.parse(response.data)
+      
+      let csvFile;
+      let downloadLink;
 
-  $('#reset-btn').click(function () {
-    $('#earnings-form').trigger('reset')
-    readCharts()
+      // define the file type to text/csv
+      csvFile = new Blob([report], {type: 'text/csv'});
+      downloadLink = document. createElement("a");
+      downloadLink.download = `monthly-report-2022`;
+      downloadLink.href = window.URL.createObjectURL(csvFile);
+      downloadLink.style.display = "none";
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+    })
+    .fail(function(error) {
+      console.log(`error di fungsi download`, error);
+    })
   })
 
   let startDate = 0
@@ -405,7 +366,7 @@ $('document').ready(function() {
       labels: earningsDefaultLabel = ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
       datasets: [{
         label: '',
-        data: earningsDefaultData = [10, 10, 2, 15, 2, 3],
+        data: earningsDefaultData = [],
         borderWidth: 3,
         borderColor: 'rgb(78, 115, 223)',
         backgroundColor: 'rgba(237, 241, 252, 0.4)'
@@ -467,84 +428,121 @@ $('document').ready(function() {
       }
   });
 
+  // Table Monthly-report
+  const monthlyReport = $('#table-monthly-report').DataTable({
+                    "lengthMenu": [[5, 10, 100, -1],[5, 10, 100]],
+                    "processing": true,
+                    "ajax": {
+                            url: '/dashboard/table',
+                            type: 'GET',
+                            data: function(d) {
+                                // this function is called every time the DataTables
+                                // requests data from the API. You can use it to pass
+                                // additional parameters to the API based on the values
+                                // of your input form
+                                d.startDate = $('#start-date').val();
+                                d.endDate = $('#end-date').val();
+                            },
+                            dataType: 'json'
+                    },
+                    "serverSide": true,
+                    "footerCallback": function(row, data, start, end, display) {
+                      let api = this.api()
+                        api.columns([1,2,3], {
+                        page: 'current'
+                        }).every(function() {
+                          var sum = this
+                          .data()
+                          .reduce(function(a, b) {
+                            var x = parseFloat(a) || 0;
+                            var y = parseFloat(b) || 0;
+                            return x + y;
+                          }, 0)
+                          $(this.footer()).html(currencyFormatter.format(sum))
+                        })
+                    },
+                    "columns": [
+                        {'data': 'monthly'},
+                        {
+                          'data': 'expense',
+                          'render': function(data) {
+                                return currencyFormatter.format(data)
+                            }
+                        },
+                        {
+                          'data': 'revenue',
+                          'render': function(data) {
+                                return currencyFormatter.format(data)
+                            }
+                        },
+                        {
+                          'data': 'earnings',
+                          'render': function(data) {
+                                return currencyFormatter.format(data)
+                            }
+                        }
+                    ],
+  })
+
   // Read chart data
   const readCharts = (query = {}) => {
-    // const [startDate, endDate] = query
-
       $.ajax({
         method: 'GET',
         url: '/dashboard/chart',
         data: query,
       })
       .done(function(response) {
-        console.log('output line chart', response.line);
         // reset line chart
-        if(response.line.length) {
+        // if(response.line.length) {
           while (earningsDefaultData.length) {earningsDefaultData.pop()}
           while (earningsDefaultLabel.length) {earningsDefaultLabel.pop()}
           response.line.forEach((item) => {
               earningsDefaultData.push(item.earnings)
-              earningsDefaultLabel.push(item.date)
+              earningsDefaultLabel.push(item.monthly)
             })
             chartLine.update()
-          }
+          // }
 
         // reset doughnut chart
-        console.log('output doughnut chart', response.doughnut);
-        if(response.doughnut.length) {
+        // if(response.doughnut.length) {
             while (customerDefaultData.length) {customerDefaultData.pop()}
             response.doughnut.forEach((item) => {
-              customerDefaultData.push(item.direct)
-              customerDefaultData.push(item.customer)
+              customerDefaultData.push(item.direct ? item.direct : 0)
+              customerDefaultData.push(item.customer ? item.customer: 0)
             })
             chartDoughnut.update()
-        }
+        // }
+
+        console.log("🚀 ~ file: index.ejs:516 ~ .done ~ response", response)
+        $('#display-total-sales').html(response.stats.totalinvoices)
+        $('#display-purchase').html(currencyFormatter.format(response.stats.totalpurchases))
+        $('#display-sales').html(currencyFormatter.format(response.stats.totalsales))
+        $('#display-earnings').html(currencyFormatter.format(response.stats.totalsales - response.stats.totalpurchases))
       }).fail(function(error) {
         console.log('error waktu read charts', error);
         alert("Failed to read data");
       })
     }
 
+    $('#earnings-form').submit(function (e) {
+      e.preventDefault()
+      const startDate = $('#start-date').val()
+      const endDate = $('#end-date').val()
+      const response = {
+        startDate,
+        endDate
+      }
+      readCharts(response)
+      monthlyReport.ajax.reload()
+    })
+
+    $('#reset-btn').click(function () {
+      $('#earnings-form').trigger('reset')
+      readCharts()
+      monthlyReport.ajax.reload()
+  })
 
 readCharts()
-
-$('#earnings-form').submit(function (e) {
-  e.preventDefault()
-  const startDate = $('#start-date').val()
-  const endDate = $('#end-date').val()
-  const response = {
-    startDate,
-    endDate
-  }
-  readCharts(response)
-})
-
-const { Parser } = json2csv
-const makeCSV = new Parser
-
-$('#download-report').click(function() {
-  $.get(`/dashboard/report`)
-  .done(function(response) {
-    console.log('output download report', response);
-    let report = makeCSV.parse(response.data)
-    
-    let csvFile;
-    let downloadLink;
-
-    // define the file type to text/csv
-    csvFile = new Blob([report], {type: 'text/csv'});
-    downloadLink = document. createElement("a");
-    downloadLink.download = `monthly-report-2022`;
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-  })
-  .fail(function(error) {
-    console.log(`error di fungsi download`, error);
-  })
-})
 
 })
 

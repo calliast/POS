@@ -29,6 +29,7 @@
                 // Read datatable Main Page
                     $('#saleList').DataTable({
                         "lengthMenu": [[3, 10, 100, -1],[3, 10, 100]],
+                        "order": [[ 1, "desc" ]],
                         "processing": true,
                         "serverSide": true,
                         "ajax": "/sales/table",
