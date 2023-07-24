@@ -30,4 +30,4 @@ To set up and run the Point of Sales on your local machine, follow these steps:
 
 ## Acknowledgments
 
-Special thanks to the my mentor Kang Rubi at Rubicamp and my friends of 33 and 32 batch of Rubicamp for their valuable insights while building this Point of Sales.
+Special thanks to my mentor, Kang Rubi, from Rubicamp, and my friends from the 33rd and 32nd batches of Rubicamp for their invaluable insights and support throughout the development of this Point of Sales. Their guidance and feedback have been instrumental in making this project a success.
