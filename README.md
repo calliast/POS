@@ -15,7 +15,7 @@ The Point of Sales (POS) system is a full-stack web application built with Expre
 
 - **Backend**: Express.js is used to build the server and handle API requests and responses.
 - **Frontend**: The frontend is built using jQuery for dynamic interactions and UI components.
-- **Database**: Data is stored in a relational database (e.g., MySQL, PostgreSQL) to manage product and sales information.
+- **Database**: Data is stored in a relational database PostgreSQL to manage product and sales information.
 - **Authentication**: a session-based authentication is implemented to ensure data privacy.
 
 ## Getting Started
