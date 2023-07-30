@@ -1,10 +1,9 @@
-import express from "express";
-import util from "../helpers/util.js";
+const express = require("express");
+const { isLoggedIn } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isLoggedIn } = util;
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
 
   router
@@ -159,4 +158,4 @@ export default function (db) {
     });
 
   return router;
-}
+};

@@ -1,11 +1,10 @@
-import express from "express";
-import util from "../helpers/util.js";
-import path from "path";
+const express = require("express");
+const path = require("path");
+const { isAdmin } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isAdmin } = util;
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
   let response;
 
@@ -289,4 +288,4 @@ export default function (db) {
     });
 
   return router;
-}
+};

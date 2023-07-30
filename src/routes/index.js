@@ -1,9 +1,9 @@
-import express from "express";
-import bcrypt from "bcrypt";
+const express = require("express");
+const bcrypt = require("bcrypt");
 
 const router = express.Router();
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
 
   router
@@ -85,4 +85,4 @@ export default function (db) {
     });
 
   return router;
-}
+};

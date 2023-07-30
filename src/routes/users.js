@@ -1,11 +1,10 @@
-import express from "express";
-import bcrypt from "bcrypt";
-import util from "../helpers/util.js";
+const express = require("express");
+const bcrypt = require("bcrypt");
+const { isAdmin } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isAdmin } = util;
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
 
   router
@@ -186,4 +185,4 @@ export default function (db) {
     });
 
   return router;
-}
+};

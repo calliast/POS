@@ -1,10 +1,9 @@
-import express from "express";
-import util from "../helpers/util.js";
+const express = require("express");
+const { isAdmin } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isAdmin } = util;
 
-export default function (db) {
+module.exports = function (db) {
   router.route("/").get(isAdmin, async function (req, res) {
     try {
       res.render("index", {
@@ -65,7 +64,10 @@ export default function (db) {
         let query_totalSales = `select SUM(sales.totalsum) as totalsales from sales LEFT JOIN purchases ON purchases.time = sales.time${
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         }`;
-        console.log("🚀 ~ file: dashboard.js:63 ~ letquery_Statistics=`SELECTcoalesce ~ query_Statistics", query_totalPurchases)
+        console.log(
+          "🚀 ~ file: dashboard.js:63 ~ letquery_Statistics=`SELECTcoalesce ~ query_Statistics",
+          query_totalPurchases
+        );
 
         let query_Chart = `SELECT coalesce(sum(sales.totalsum), 0) - coalesce(sum(purchases.totalsum), 0) AS earnings, coalesce(to_char(purchases.time, 'Mon YY'), to_char(sales.time, 'Mon YY')) AS monthly FROM
         sales FULL OUTER JOIN purchases ON sales.time = purchases.time${
@@ -81,7 +83,7 @@ export default function (db) {
         const { rows: totalInvoices } = await db.query(query_totalInvoices);
         const { rows: totalPurchases } = await db.query(query_totalPurchases);
         const { rows: totalSales } = await db.query(query_totalSales);
-        console.log("🚀 ~ file: dashboard.js:78 ~ statistics", totalPurchases)
+        console.log("🚀 ~ file: dashboard.js:78 ~ statistics", totalPurchases);
 
         res.json({
           line: chart,
@@ -135,7 +137,9 @@ export default function (db) {
         let sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        sortBy = sortBy = 'monthly' ? `to_date(monthly || ' 01', 'Mon YY DD')` : sortBy
+        sortBy = sortBy = "monthly"
+          ? `to_date(monthly || ' 01', 'Mon YY DD')`
+          : sortBy;
 
         let queryTotal = `SELECT count(*) as TOTAL FROM pos_monthly_report${
           query ? query : ``

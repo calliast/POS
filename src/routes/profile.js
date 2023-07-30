@@ -1,11 +1,10 @@
-import express from "express";
-import util from "../helpers/util.js";
-import bcrypt from "bcrypt";
+const express = require("express");
+const bcrypt = require("bcrypt");
+const { isLoggedIn } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isLoggedIn } = util;
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
 
   /* Change password */
@@ -175,4 +174,4 @@ export default function (db) {
   });
 
   return router;
-}
+};

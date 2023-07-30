@@ -1,11 +1,4 @@
-import dotenv from "dotenv";
-
-dotenv.config({ path: `/.env` });
-
-// console.log(dotenv)
-
-const env = process.env;
-console.log(`🚀 ~ file: config.js:6 ~ env::\n`, env);
+require("dotenv").config({ path: ".env" });
 
 const PORT = process.env.URL_PORT ? Number(process.env.URL_PORT) : 8080;
 
@@ -18,12 +11,12 @@ const config = {
     port: process.env.DB_PG_PORT,
   },
   session: {
-    secret: process.env.AUTH_SECRET,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     // cookie: { secure: true }
   },
-  PORT,
+  server: { PORT },
 };
 
-export default config;
+module.exports = { config };

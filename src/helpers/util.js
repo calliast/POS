@@ -12,7 +12,7 @@ const isAdmin = (req, res, next) => {
   res.redirect("/sales");
 };
 
-export default {
+module.exports = {
   isLoggedIn,
   isAdmin,
 };

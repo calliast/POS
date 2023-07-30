@@ -1,10 +1,9 @@
-import express from "express";
-import util from "../helpers/util.js";
+const express = require("express");
+const { isAdmin } = require("../helpers/util.js");
 
 const router = express.Router();
-const { isAdmin } = util;
 
-export default function (db) {
+module.exports = function (db) {
   let sql;
 
   router
@@ -158,7 +157,7 @@ export default function (db) {
           req.flash(`error`, `Error when updating unit ${unit}!`);
         }
 
-        res.redirect("/units")
+        res.redirect("/units");
       } catch (error) {
         res.json(error);
       }
