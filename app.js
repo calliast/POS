@@ -1,18 +1,34 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
-var session = require("express-session");
-var flash = require("connect-flash");
-var fileUpload = require("express-fileupload");
-var cors = require("cors");
-var { isAdmin } = require("./helpers/util");
+import createError from "http-errors";
+import express from "express";
+import path from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import session from "express-session";
+import flash from "connect-flash";
+import fileUpload from "express-fileupload";
+import cors from "cors";
+import debug from "debug";
+import http from "http";
+import util from "./src/helpers/util.js";
+import config from "./src/config/config.js";
+
+import indexRouter from "./src/routes/index.js";
+import usersRouter from "./src/routes/users.js";
+import unitsRouter from "./src/routes/units.js";
+import goodsRouter from "./src/routes/goods.js";
+import suppliersRouter from "./src/routes/suppliers.js";
+import purchasesRouter from "./src/routes/purchases.js";
+import customersRouter from "./src/routes/customers.js";
+import salesRouter from "./src/routes/sales.js";
+import dashboardRouter from "./src/routes/dashboard.js";
+import profileRouter from "./src/routes/profile.js";
+import pg from "pg";
+
+const __dirname = path.resolve(path.dirname(""));
+const { Pool } = pg;
 
 async function main() {
   try {
-    const Pool = require("pg").Pool;
-
     const pool = new Pool({
       user: "ikhsan",
       host: "localhost",
@@ -31,22 +47,11 @@ async function main() {
 
 main()
   .then((db) => {
-    var indexRouter = require("./routes/index")(db);
-    var usersRouter = require("./routes/users")(db);
-    var unitsRouter = require("./routes/units")(db);
-    var goodsRouter = require("./routes/goods")(db);
-    var suppliersRouter = require("./routes/suppliers")(db);
-    var purchasesRouter = require("./routes/purchases")(db);
-    var customersRouter = require("./routes/customers")(db);
-    var salesRouter = require("./routes/sales")(db);
-    var dashboardRouter = require("./routes/dashboard")(db);
-    var profileRouter = require("./routes/profile")(db);
-
     var app = express();
 
     // view engine setup
     app.set("view engine", "ejs");
-    app.set("views", path.join(__dirname, "/views"));
+    app.set("views", path.join(__dirname, "views"));
 
     app.use(logger("dev"));
     app.use(express.json());
@@ -65,16 +70,16 @@ main()
     app.use(cors());
     app.use(flash());
 
-    app.use("/", indexRouter);
-    app.use("/users", usersRouter);
-    app.use("/units", unitsRouter);
-    app.use("/goods", goodsRouter);
-    app.use("/suppliers", suppliersRouter);
-    app.use("/purchases", purchasesRouter);
-    app.use("/customers", customersRouter);
-    app.use("/sales", salesRouter);
-    app.use("/dashboard", dashboardRouter);
-    app.use("/profile", profileRouter);
+    app.use("/", indexRouter(db));
+    app.use("/users", usersRouter(db));
+    app.use("/units", unitsRouter(db));
+    app.use("/goods", goodsRouter(db));
+    app.use("/suppliers", suppliersRouter(db));
+    app.use("/purchases", purchasesRouter(db));
+    app.use("/customers", customersRouter(db));
+    app.use("/sales", salesRouter(db));
+    app.use("/dashboard", dashboardRouter(db));
+    app.use("/profile", profileRouter(db));
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
@@ -92,9 +97,6 @@ main()
       res.render("error");
     });
 
-    var debug = require("debug")("c22:server");
-    var http = require("http");
-
     /**
      * Get port from environment and store in Express.
      */
@@ -107,14 +109,6 @@ main()
      */
 
     var server = http.createServer(app);
-
-    /**
-     * Listen on provided port, on all network interfaces.
-     */
-
-    server.listen(port);
-    server.on("error", onError);
-    server.on("listening", onListening);
 
     /**
      * Normalize a port into a number, string, or false.
@@ -172,6 +166,14 @@ main()
         typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
       debug("Listening on " + bind);
     }
+
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+
+    server.listen(port);
+    server.on("error", onError);
+    server.on("listening", onListening);
   })
   .catch((err) => {
     console.log("gagal bro", err);

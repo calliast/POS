@@ -1,14 +1,14 @@
-var express = require("express");
-var router = express.Router();
-const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../helpers/util");
+import express from "express";
+import bcrypt from "bcrypt";
 
-module.exports = function (db) {
-  let sql
-  
+const router = express.Router();
+
+export default function (db) {
+  let sql;
+
   router
-  .route("/")
-  /* LOGIN PAGE */
+    .route("/")
+    /* LOGIN PAGE */
     .get(async function (req, res) {
       res.render("login", { error: req.flash(`error`) });
     })
@@ -34,8 +34,8 @@ module.exports = function (db) {
 
         req.session.user = checkEmail.rows[0];
 
-        if (req.session.user.role == 'operator') {
-          return res.redirect('/sales')
+        if (req.session.user.role == "operator") {
+          return res.redirect("/sales");
         }
 
         res.redirect("/dashboard");
@@ -43,15 +43,15 @@ module.exports = function (db) {
         res.send(error);
       }
     });
-  
+
   router.route("/logout").get(async function (req, res) {
     await req.session.destroy();
     res.redirect("/");
   });
 
   router
-  .route("/register")
-  /* REGISTRATION PAGE */
+    .route("/register")
+    /* REGISTRATION PAGE */
     .get(async function (req, res) {
       res.render("register", { error: req.flash(`error`) });
     })
@@ -85,4 +85,4 @@ module.exports = function (db) {
     });
 
   return router;
-};
+}

@@ -6,13 +6,13 @@ const isLoggedIn = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.session.user.role == 'admin') {
+  if (req.session.user.role == "admin") {
     return next();
   }
   res.redirect("/sales");
 };
 
-module.exports = {
+export default {
   isLoggedIn,
-  isAdmin
+  isAdmin,
 };

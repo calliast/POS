@@ -1,8 +1,10 @@
-var express = require("express");
-var router = express.Router();
-const { isAdmin } = require("../helpers/util");
+import express from "express";
+import util from "../helpers/util.js";
 
-module.exports = function (db) {
+const router = express.Router();
+const { isAdmin } = util;
+
+export default function (db) {
   router.route("/").get(isAdmin, async function (req, res) {
     try {
       res.render("index", {

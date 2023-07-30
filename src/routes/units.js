@@ -1,8 +1,10 @@
-var express = require("express");
-const { isAdmin } = require("../helpers/util");
-var router = express.Router();
+import express from "express";
+import util from "../helpers/util.js";
 
-module.exports = function (db) {
+const router = express.Router();
+const { isAdmin } = util;
+
+export default function (db) {
   let sql;
 
   router

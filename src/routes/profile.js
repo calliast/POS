@@ -1,9 +1,11 @@
-var express = require("express");
-var router = express.Router();
-const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../helpers/util");
+import express from "express";
+import util from "../helpers/util.js";
+import bcrypt from "bcrypt";
 
-module.exports = function (db) {
+const router = express.Router();
+const { isLoggedIn } = util;
+
+export default function (db) {
   let sql;
 
   /* Change password */
@@ -15,7 +17,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
-          active: `profile`
+          active: `profile`,
         });
       } catch (error) {
         res.json(error);
@@ -61,7 +63,7 @@ module.exports = function (db) {
 
         const { rows: updatedPassword } = await db.query(sql, [
           hashedPassword,
-          id
+          id,
         ]);
 
         if (!updatedPassword) {
@@ -98,7 +100,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
-          active: `profile/edit`
+          active: `profile/edit`,
         });
       } catch (error) {
         res.send("error");
@@ -173,4 +175,4 @@ module.exports = function (db) {
   });
 
   return router;
-};
+}
