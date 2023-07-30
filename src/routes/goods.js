@@ -1,7 +1,8 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
 const path = require("path");
-const { isAdmin } = require("../helpers/util");
+const { isAdmin } = require("../helpers/util.js");
+
+const router = express.Router();
 
 module.exports = function (db) {
   let sql;
@@ -50,12 +51,12 @@ module.exports = function (db) {
         const { barcode, name, stock, purchasePrice, sellingPrice, unit } =
           req.body;
 
-          // if No picture
+        // if No picture
         if (!req.files || Object.keys(req.files).length === 0) {
           // /* Driver code to update data */
           sql = `INSERT INTO goods("barcode", "name", "stock", "unit", "purchaseprice", "sellingprice", "picture") VALUES($1,$2,$3,$4,$5,$6,$7) returning *`;
-          pictureName = `no-picture`
-          
+          pictureName = `no-picture`;
+
           response = [
             barcode,
             name,
@@ -63,11 +64,11 @@ module.exports = function (db) {
             unit,
             purchasePrice,
             sellingPrice,
-            pictureName
+            pictureName,
           ];
 
           const { rows: addGoodsNoPicture } = await db.query(sql, response);
-          
+
           if (addGoodsNoPicture.length > 0) {
             req.flash(`success`, `A new goods ${name} has been added!`);
           } else {

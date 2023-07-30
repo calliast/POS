@@ -1,7 +1,8 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
 const bcrypt = require("bcrypt");
-const { isLoggedIn } = require("../helpers/util");
+const { isLoggedIn } = require("../helpers/util.js");
+
+const router = express.Router();
 
 module.exports = function (db) {
   let sql;
@@ -15,7 +16,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
-          active: `profile`
+          active: `profile`,
         });
       } catch (error) {
         res.json(error);
@@ -61,7 +62,7 @@ module.exports = function (db) {
 
         const { rows: updatedPassword } = await db.query(sql, [
           hashedPassword,
-          id
+          id,
         ]);
 
         if (!updatedPassword) {
@@ -98,7 +99,7 @@ module.exports = function (db) {
           user: req.session.user,
           error: req.flash("error"),
           success: req.flash("success"),
-          active: `profile/edit`
+          active: `profile/edit`,
         });
       } catch (error) {
         res.send("error");

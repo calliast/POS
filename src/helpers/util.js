@@ -6,7 +6,7 @@ const isLoggedIn = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.session.user.role == 'admin') {
+  if (req.session.user.role == "admin") {
     return next();
   }
   res.redirect("/sales");
@@ -14,5 +14,5 @@ const isAdmin = (req, res, next) => {
 
 module.exports = {
   isLoggedIn,
-  isAdmin
+  isAdmin,
 };

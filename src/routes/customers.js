@@ -1,20 +1,21 @@
-var express = require("express");
-var router = express.Router();
-const { isLoggedIn } = require("../helpers/util");
+const express = require("express");
+const { isLoggedIn } = require("../helpers/util.js");
+
+const router = express.Router();
 
 module.exports = function (db) {
   let sql;
 
   router
     .route("/")
-    // 1. Render suppliers page
+    // 1. Render customers page
     .get(isLoggedIn, async function (req, res) {
       try {
-        res.render("./suppliers/suppliers", {
+        res.render("./customers/customers", {
           user: req.session.user,
           success: req.flash(`success`),
           error: req.flash(`error`),
-          active: `suppliers`,
+          active: `customers`,
         });
       } catch (error) {
         res.json(error);
@@ -23,38 +24,38 @@ module.exports = function (db) {
 
   router
     .route("/add")
-    // 2. Render add supplier page
+    // 2. Render add page
     .get(isLoggedIn, async function (req, res) {
       try {
-        res.render("./suppliers/add", {
+        res.render("./customers/add", {
           user: req.session.user,
-          active: `suppliers/add`,
+          active: `customers/add`,
         });
       } catch (error) {
         res.json(error);
       }
+      // Adding customer method
     })
-    // 3. Add a supplier (CREATE)
+    // 2. Add new customers
     .post(isLoggedIn, async function (req, res) {
       try {
         const { name, address, phone } = req.body;
 
-        // /* Driver code to add data */
-        sql = `INSERT INTO suppliers("name", "address", "phone") VALUES($1,$2,$3) returning *`;
+        sql = `INSERT INTO customers("name", "address", "phone") VALUES($1,$2,$3) returning *`;
 
-        const { rows: addSupplier } = await db.query(sql, [
+        const { rows: addCustomer } = await db.query(sql, [
           name,
           address,
           phone,
         ]);
 
-        if (addSupplier.length > 0) {
-          req.flash(`success`, `A new supplier ${name} has been added!`);
+        if (addCustomer.length > 0) {
+          req.flash(`success`, `A new customer ${name} has been added!`);
         } else {
-          req.flash(`error`, `Error when adding new supplier ${name}!`);
+          req.flash(`error`, `Error when adding customer ${name}!`);
         }
 
-        res.redirect("/suppliers");
+        res.redirect("/customers");
       } catch (error) {
         res.json(error);
       }
@@ -62,7 +63,7 @@ module.exports = function (db) {
 
   router
     .route("/data")
-    // 4. Populate datatable (READ, BROWSE)
+    // 3. Populate datatable
     .get(isLoggedIn, async function (req, res) {
       try {
         let params = [];
@@ -78,10 +79,10 @@ module.exports = function (db) {
         const sortBy = req.query.columns[req.query.order[0].column].data;
         const sortMode = req.query.order[0].dir;
 
-        let queryTotal = `SELECT count(*) as TOTAL FROM suppliers${
+        let queryTotal = `SELECT count(*) as TOTAL FROM customers${
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         }`;
-        let queryData = `SELECT * FROM suppliers${
+        let queryData = `SELECT * FROM customers${
           params.length > 0 ? ` WHERE ${params.join(" OR ")}` : ""
         } ORDER BY ${sortBy} ${sortMode} LIMIT ${limit} OFFSET ${offset}`;
 
@@ -102,59 +103,55 @@ module.exports = function (db) {
     });
 
   router
-    .route("/data/:supplierid")
+    .route("/data/:customerid")
     // 4. Render edit page
     .get(isLoggedIn, async function (req, res) {
       try {
-        sql = `SELECT * FROM suppliers WHERE "supplierid" = $1`;
+        sql = `SELECT * FROM customers WHERE "customerid" = $1`;
 
-        const { supplierid } = req.params;
+        const { customerid } = req.params;
 
-        const { rows: getSuppliersData } = await db.query(sql, [supplierid]);
+        const selectData = await db.query(sql, [customerid]);
 
-        res.render("./suppliers/edit", {
+        res.render("./customers/edit", {
           user: req.session.user,
-          data: getSuppliersData,
-          active: `suppliers/edit`,
+          data: selectData.rows,
+          active: `customers/edit`,
         });
       } catch (error) {
         res.json(error);
       }
     })
-    // 5. Update supplier (UPDATE)
+    // 5. Saved updated data
     .post(isLoggedIn, async function (req, res) {
       try {
-        // /* Driver code to update data */
-        sql = `UPDATE suppliers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "supplierid" = $4 returning *`;
+        sql = `UPDATE customers SET "name" = $1, "address" = $2, "phone" = $3 WHERE "customerid" = $4 returning *`;
 
         const { name, address, phone } = req.body;
-        const { rows: updateSupplier } = await db.query(sql, [
-          name,
-          address.trim(),
-          phone,
-          req.params.supplierid,
-        ]);
 
-        if (updateSupplier.length > 0) {
-          req.flash(`success`, `Supplier ${name} has been updated!`);
+        const response = [name, address.trim(), phone, req.params.customerid];
+
+        const { rows: updateCustomer } = await db.query(sql, response);
+
+        if (updateCustomer.length > 0) {
+          req.flash(`success`, `Customer ${name} has been updated!`);
         } else {
-          req.flash(`error`, `Error when updating ${name}'s data!`);
+          req.flash(`error`, `Error when updating customer ${name}'s data!`);
         }
 
-        res.redirect("/suppliers");
+        res.redirect("/customers");
       } catch (error) {
         res.json(error);
       }
     })
-    // 5. Delete a supplier (DELETE)
+    // 6. Delete customers data
     .delete(isLoggedIn, async function (req, res) {
       try {
-        const supplierid = req.params.supplierid;
-
-        sql = `DELETE FROM suppliers WHERE "supplierid" = $1`;
-        const { rows: deleteASupplier } = await db.query(sql, [supplierid]);
-
-        res.json(deleteASupplier);
+        sql = `DELETE FROM customers WHERE "customerid" = $1`;
+        const customerid = req.params.customerid;
+        console.log("ini route delete", sql, customerid);
+        const deleteData = await db.query(sql, [customerid]);
+        res.json(deleteData);
       } catch (error) {
         res.json(error);
       }

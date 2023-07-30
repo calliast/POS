@@ -1,9 +1,9 @@
-var express = require("express");
-var router = express.Router();
-const moment = require("moment");
-const { isLoggedIn } = require("../helpers/util");
+const express = require("express");
+const { isLoggedIn } = require("../helpers/util.js");
 
-module.exports = function (db) {
+const router = express.Router();
+
+module.exports =  function (db) {
   let fromSales;
 
   /* OVERVIEW */

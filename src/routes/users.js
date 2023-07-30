@@ -1,7 +1,8 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
 const bcrypt = require("bcrypt");
-const { isAdmin } = require("../helpers/util");
+const { isAdmin } = require("../helpers/util.js");
+
+const router = express.Router();
 
 module.exports = function (db) {
   let sql;
