@@ -4,7 +4,10 @@
     "password": "1234",
     "database": "posdb-sequelize",
     "host": "127.0.0.1",
-    "dialect": "postgresql"
+    "dialect": "postgresql",
+    "define": {
+      "timestamps": true
+    }
   },
   "test": {
     "username": "root",

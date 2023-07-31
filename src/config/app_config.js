@@ -19,4 +19,4 @@ const config = {
   server: { PORT },
 };
 
-module.exports = { config };
+module.exports = config;
