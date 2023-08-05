@@ -3,18 +3,17 @@ const RouteGroup = require("express-route-grouping").default;
 
 const route = new RouteGroup("", Router());
 
-// Main Controller
-const MainController = require("../controllers/main/main-controller");
-const mainConstroller = new MainController();
-
 // Authentication Controller
-const AuthController = require("../controllers/auth/auth-controller");
+const AuthController = require("../controllers/auth/AuthController");
 const authController = new AuthController();
 
 route.group("", (router) => {
-  router.get("/", mainConstroller.index);
+  router.get("/not-found", (req, res) => res.render("404"));
 
-  router.post("/login", authController.login);
+  router.get("/", authController.loginPage);
+  router.post("/", authController.login);
+
+  router.get("/register", authController.registerPage);
   router.post("/register", authController.register);
 });
 
