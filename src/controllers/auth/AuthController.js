@@ -28,11 +28,6 @@ class AuthController {
         res.redirect("/dashboard");
       }
     } catch (error) {
-      console.log(
-        `🚀 ~ file: AuthController.js:38 ~ AuthController ~ login= ~ error::\n`,
-        error
-      );
-
       res.redirect("/");
     }
   };
@@ -44,6 +39,11 @@ class AuthController {
     } catch (error) {
       res.redirect("/register");
     }
+  };
+
+  logout = async (req, res) => {
+    await req.session.destroy();
+    res.redirect("/");
   };
 }
 

@@ -1,5 +1,5 @@
 const AuthService = require("./auth/AuthService");
-const UserService = require("./user/UserService");
+const UserService = require("./User/UserService");
 const MainService = require("./main");
 
 module.exports = {
