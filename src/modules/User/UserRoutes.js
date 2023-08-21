@@ -1,7 +1,7 @@
 const route = require("../../config/router");
 
 // Authentication Controller
-const UserController = require("../../controllers/User/UserController");
+const UserController = require("./UserController");
 const userController = new UserController();
 
 route.group("/user", (router) => {
@@ -15,8 +15,6 @@ route.group("/user", (router) => {
 
   router.patch("/:userid", userController.updateUser);
   router.delete("/:userid", userController.deleteUser);
-  
-
 });
 
 module.exports = route;

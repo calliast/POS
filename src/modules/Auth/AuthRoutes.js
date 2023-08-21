@@ -1,11 +1,11 @@
 const route = require("../../config/router");
 
 // Response Controller
-const ResponseController = require("../../controllers/Response/ResponseController");
-const responseController = new ResponseController();
+const ResponseHandler = require("../Handler/ResponseHandler");
+const responseHandler = new ResponseHandler();
 
 // Authentication Controller
-const AuthController = require("../../controllers/Auth/AuthController");
+const AuthController = require("./AuthController");
 const authController = new AuthController();
 
 route.group("", (router) => {
@@ -16,7 +16,7 @@ route.group("", (router) => {
   router.post("/register", authController.register);
 
   router.get("/logout", authController.logout);
-  router.get("/not-found", responseController.notFoundPage);
+  router.get("/not-found", responseHandler.notFoundPage);
 });
 
 module.exports = route;

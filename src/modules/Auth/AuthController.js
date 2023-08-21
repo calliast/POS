@@ -1,8 +1,5 @@
-// response-format
-const Response = require("../../traits/response-format");
-
 // Auth-service
-const { AuthService } = require("../../services");
+const AuthService = require("./AuthService");
 const authService = new AuthService();
 
 class AuthController {

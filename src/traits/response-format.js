@@ -1,6 +1,6 @@
 class Response {
   constructor(meta = null, data = null) {
-    this.meta = meta
+    this.meta = meta;
     this.data = data;
   }
 }
