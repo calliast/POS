@@ -2,7 +2,7 @@
 const Response = require("../../traits/response-format");
 
 // User Service
-const { UserService } = require("../../services");
+const UserService = require("./UserService");
 const userService = new UserService();
 
 class UserController {
@@ -32,12 +32,6 @@ class UserController {
         .status(status)
         .send(new Response({ status, description, message }, data));
     } catch (error) {
-      console.log(
-        `🚀 ~ file: UserController.js:35 ~ UserController ~ getUsers ~ error::\n`,
-        error
-      );
-
-      // res.send(error);
       res.json(error);
     }
   }
